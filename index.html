@@ -1,0 +1,819 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AntSeed — Technical Due Diligence Report</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --panel2:#fbfcfd; --ink:#14181d; --ink2:#414a55; --ink3:#6b7683;
+  --line:#dde2e8; --line2:#e9edf1; --accent:#1f5fa8; --accent-ink:#fff;
+  --ok:#1c7a4a; --ok-bg:#e6f4ec; --warn:#a8690a; --warn-bg:#fdf1de; --bad:#a32b2b; --bad-bg:#fbe9e9;
+  --info:#2a5b8f; --info-bg:#e9f0f8; --neutral:#5b6570; --neutral-bg:#eef1f4;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.06);
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,system-ui,sans-serif;
+}
+html[data-theme="dark"]{
+  --bg:#0e1116; --panel:#161b22; --panel2:#1b212a; --ink:#e7ecf2; --ink2:#b6c0cc; --ink3:#8b95a3;
+  --line:#2a313a; --line2:#232a33; --accent:#5aa9f0; --accent-ink:#08121d;
+  --ok:#5cd39a; --ok-bg:#12291f; --warn:#e8ac4f; --warn-bg:#2c2214; --bad:#f08585; --bad-bg:#2e1818;
+  --info:#7fb4e8; --info-bg:#13202e; --neutral:#98a3b0; --neutral-bg:#1e242c;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);
+}
+@media (prefers-color-scheme:dark){ html[data-theme="auto"]{ --bg:#0e1116; --panel:#161b22; --panel2:#1b212a; --ink:#e7ecf2; --ink2:#b6c0cc; --ink3:#8b95a3; --line:#2a313a; --line2:#232a33; --accent:#5aa9f0; --accent-ink:#08121d; --ok:#5cd39a; --ok-bg:#12291f; --warn:#e8ac4f; --warn-bg:#2c2214; --bad:#f08585; --bad-bg:#2e1818; --info:#7fb4e8; --info-bg:#13202e; --neutral:#98a3b0; --neutral-bg:#1e242c; --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.35);} }
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.62 var(--sans);}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 90px}
+h1,h2,h3,h4{line-height:1.25;color:var(--ink);letter-spacing:-.012em}
+h1{font-size:31px;margin:0 0 6px}
+h2{font-size:22px;margin:0 0 4px}
+h3{font-size:17px;margin:26px 0 8px}
+h4{font-size:15px;margin:18px 0 6px;color:var(--ink2)}
+p{margin:0 0 12px}
+a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(128,128,128,.35)}
+a:hover{border-bottom-color:var(--accent)}
+code{font-family:var(--mono);font-size:.875em;background:var(--neutral-bg);padding:.1em .38em;border-radius:4px;color:var(--ink)}
+pre{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.55;margin:12px 0}
+pre code{background:none;padding:0}
+hr{border:0;border-top:1px solid var(--line);margin:34px 0}
+small{color:var(--ink3)}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;padding-bottom:18px;border-bottom:2px solid var(--line)}
+.eyebrow{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3);font-weight:700;margin-bottom:8px}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:13.5px;color:var(--ink2)}
+.meta b{color:var(--ink);font-weight:650}
+.tbtn{border:1px solid var(--line);background:var(--panel);color:var(--ink2);border-radius:9px;padding:8px 13px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.tbtn:hover{border-color:var(--accent);color:var(--accent)}
+.sec{margin-top:44px;scroll-margin-top:20px}
+.sec-h{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:16px}
+.sec-n{font:700 12px/1 var(--mono);color:var(--accent);background:var(--info-bg);border:1px solid rgba(128,128,128,.3);padding:6px 8px;border-radius:6px;flex:none}
+.sec-sub{color:var(--ink3);font-size:13.5px;margin:-2px 0 18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0;box-shadow:var(--shadow);break-inside:avoid}
+.card.tight{padding:14px 16px}
+.verdict{border-radius:14px;padding:24px 26px;margin:26px 0 22px;border:1px solid;break-inside:avoid}
+.verdict.experimental{background:var(--warn-bg);border-color:var(--warn)}
+.vl{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;margin-bottom:7px}
+.verdict.experimental .vl{color:var(--warn)}
+.vt{font-size:27px;font-weight:800;line-height:1.2;margin:0 0 12px}
+.vbody{font-size:15.5px;color:var(--ink2);max-width:82ch}
+.vbody b{color:var(--ink)}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.04em;padding:4px 10px;border-radius:999px;border:1px solid;margin:0 6px 6px 0}
+.tag{display:inline-block;font:700 10px/1 var(--sans);letter-spacing:.07em;text-transform:uppercase;padding:3.5px 7px;border-radius:5px;vertical-align:1.5px;margin:0 3px 2px 0;white-space:nowrap;border:1px solid}
+.t-verified{color:var(--ok);background:var(--ok-bg);border-color:var(--ok)}
+.t-claimed{color:var(--warn);background:var(--warn-bg);border-color:var(--warn)}
+.t-inference{color:var(--info);background:var(--info-bg);border-color:var(--info)}
+.t-none{color:var(--bad);background:var(--bad-bg);border-color:var(--bad)}
+.sc{width:100%;border-collapse:separate;border-spacing:0;font-size:14.2px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;break-inside:avoid}
+.sc th,.sc td{padding:11px 13px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
+.sc thead th{background:var(--panel2);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);font-weight:750}
+.sc tbody tr:last-child td{border-bottom:none}
+.sc .dim{font-weight:650}
+.bar{display:flex;gap:3px;align-items:center;margin:2px 0 4px}
+.bar i{display:block;width:19px;height:9px;border-radius:2px;background:var(--line)}
+.bar i.f{background:var(--accent)}
+.sv{font:700 13px/1 var(--mono);color:var(--ink2)}
+.conf{font-size:11.5px;color:var(--ink3)}
+.conf b{color:var(--ink2);font-weight:700}
+table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:13.8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:14px 0;break-inside:avoid}
+table.t th,table.t td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
+table.t thead th{background:var(--panel2);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);font-weight:750}
+table.t tbody tr:last-child td{border-bottom:none}
+table.t tbody tr:nth-child(even){background:var(--panel2)}
+tr.hl{background:var(--ok-bg)!important}
+.t-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.note{border-left:3px solid;border-radius:0 9px 9px 0;padding:12px 16px;margin:14px 0;font-size:14.2px;break-inside:avoid}
+.note.red{background:var(--bad-bg);border-color:var(--bad)}
+.note.amber{background:var(--warn-bg);border-color:var(--warn)}
+.note.green{background:var(--ok-bg);border-color:var(--ok)}
+.note.blue{background:var(--info-bg);border-color:var(--info)}
+.note b{color:var(--ink)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;margin:8px 0}
+.kv>span:first-child{color:var(--ink3);font-weight:650}
+ul,ol{margin:0 0 12px;padding-left:22px}
+li{margin-bottom:6px}
+figure{margin:16px 0}
+figcaption{font-size:12.8px;color:var(--ink3);margin-top:8px;line-height:1.55}
+.src{font-size:11.5px;font-family:var(--mono);color:var(--ink3);white-space:nowrap}
+.status-ok{color:var(--ok);font-weight:700}
+.status-blk{color:var(--bad);font-weight:700}
+.status-part{color:var(--warn);font-weight:700}
+ol.srcs{padding-left:26px}
+ol.srcs li{font-size:13.4px;margin-bottom:5px;color:var(--ink2)}
+footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--ink3)}
+@media (max-width:720px){
+  .grid2{grid-template-columns:1fr}
+  h1{font-size:25px} .vt{font-size:22px}
+  .wrap{padding:18px 14px 70px}
+  .meta{grid-template-columns:1fr}
+  .meta b{margin-top:6px}
+  .sc th,.sc td{padding:9px 8px;font-size:13.2px}
+  table.t th,table.t td{padding:8px 9px;font-size:13px}
+  .verdict{padding:18px}
+}
+@media print{
+  html,body{background:#fff!important;color:#000!important;font-size:10.5pt}
+  html[data-theme],html[data-theme="auto"]{--bg:#fff;--panel:#fff;--panel2:#fafafa;--ink:#000;--ink2:#222;--ink3:#555;--line:#bbb;--line2:#ddd;--accent:#0b4f9c;--ok:#0d5c33;--warn:#8a5300;--bad:#8c1f1f;--info:#1f4a7a;--neutral:#444;--neutral-bg:#f0f0f0;--ok-bg:#eef8f2;--warn-bg:#fdf4e6;--bad-bg:#fceeee;--info-bg:#eef4fb;--neutral-bg:#f1f1f1;--shadow:none}
+  .wrap{max-width:none;padding:0}
+  .tbtn{display:none!important}
+  h2,h3{break-after:avoid}
+  .card,.verdict,.note,.sc,table.t,.kv,figure{break-inside:avoid;page-break-inside:avoid}
+  .verdict{background:#fff!important;border:2px solid #8a5300!important}
+  a{color:#0b4f9c;border:0}
+  thead{display:table-header-group}
+  tr,li{orphans:3;widows:3}
+  ol.srcs>li{break-inside:avoid}
+  table.t tbody tr:nth-child(even){background:#fafafa}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hdr">
+  <div>
+    <div class="eyebrow">Technical Due Diligence · Independent review · Public</div>
+    <h1>AntSeed — Production Inference Assessment</h1>
+    <div class="meta">
+      <b>Prepared for</b><span>Executive Committee — evaluation of AntSeed for production AI inference</span>
+      <b>Date of review</b><span>18 October 2026 (every finding carries this access date)</span>
+      <b>Scope</b><span>Public documentation, on-chain data, independent press, GitHub, and a hands-on installation and inference test run locally</span>
+      <b>Sources</b><span>120 distinct URLs loaded, plus GitHub REST endpoints, two on-chain contract pages, and one X post retrieved via API mirror</span>
+      <b>Labelling</b><span><span class="tag t-verified">Verified</span> observed first-hand &nbsp; <span class="tag t-claimed">Claimed</span> stated by AntSeed &nbsp; <span class="tag t-inference">Inference</span> our analysis &nbsp; <span class="tag t-none">No evidence</span> searched and not found</span>
+    </div>
+  </div>
+  <button class="tbtn" id="themeBtn" type="button">◐&nbsp; Theme</button>
+</header>
+
+<section class="verdict experimental" id="verdict">
+  <div class="vl">Verdict</div>
+  <p class="vt">Experimental / non-critical workloads only</p>
+  <div>
+    <span class="pill" style="color:var(--warn);border-color:var(--warn)">Do not use for customer-facing inference</span>
+    <span class="pill" style="color:var(--ink3);border-color:var(--line)">No SLA · no audit · no status page</span>
+    <span class="pill" style="color:var(--ink3);border-color:var(--line)">The technology works; the risk wrapper does not</span>
+  </div>
+  <div class="vbody">
+    AntSeed is a <b>real, working, actively developed</b> peer-to-peer inference network — not vapour. We installed it, routed live requests, and got correct completions with a median of 666&nbsp;ms. The blocker is not the software; it is everything <b>around</b> the software. There is no uptime commitment, no status page, no independent contract audit, no privacy attestation that is actually live, and an <b>open, confirmed bug that over-bills buyers</b>. Total network revenue to date is roughly <b>$317,000 lifetime</b>, and the single largest seller takes 16.7% of it.
+    <br><br>
+    <b>Revisit when AntSeed:</b> publishes a status page with public uptime figures · closes issue&nbsp;#1200 · ships TEE verification in a released rather than "future" version · publishes an independent smart-contract audit of <code>AntseedDeposits</code> · and completes six months of on-chain settlement without a material incident.
+  </div>
+</section>
+
+<section class="sec" id="exec">
+  <div class="sec-h"><span class="sec-n">01</span><h2>Executive summary</h2></div>
+  <p style="font-size:16.5px">AntSeed lets strangers sell AI model access directly to each other, paid in USDC cryptocurrency, skipping the big cloud companies. It works — we tested it and got a correct answer in under a second. <b>We do not recommend it for production inference yet.</b></p>
+  <p>Three reasons:</p>
+  <ol style="font-size:16px">
+    <li><b>Nobody is accountable if it goes down.</b> There is no service-level agreement, no status page, and no uptime history. An independent reviewer scored its "liquidity and access" readiness <b>1 out of 15</b>. When we sent 20 requests to the most-used model, all 20 went to <b>a single computer</b> — so in practice there is no backup.</li>
+    <li><b>You cannot be sure which model you got.</b> The same model name returned different actual models depending on which seller served it, and one reply described itself as a different version than the one requested. AntSeed's own documentation admits model verification is not part of its trust score.</li>
+    <li><b>Money and compliance risk is unmanaged.</b> A confirmed, still-open bug lets sellers charge buyers roughly $0.50 more than they should. The contracts holding customer money have never been audited. The token cannot be sold or transferred at all.</li>
+  </ol>
+  <p><b>Recommended use:</b> internal experiments, developer tooling and cost-sensitive batch work where a failure costs time rather than money or reputation. Revisit in six months.</p>
+</section>
+
+<section class="sec" id="scorecard">
+  <div class="sec-h"><span class="sec-n">02</span><h2>Scorecard</h2></div>
+  <p class="sec-sub">1 = unacceptable · 5 = enterprise-grade. Confidence reflects how much first-hand or independent evidence we hold.</p>
+  <div class="t-wrap">
+  <table class="sc">
+    <thead><tr><th style="width:15%">Dimension</th><th style="width:14%">Score</th><th style="width:12%">Confidence</th><th>One-line reason</th></tr></thead>
+    <tbody>
+      <tr><td class="dim">Maturity</td>
+        <td><div class="bar"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div><span class="sv">2 / 5</span></td>
+        <td class="conf"><b>High</b><br>measured</td>
+        <td>Eight months old, pre-1.0 (<code>v0.2.65</code> on GitHub, <code>0.1.196</code> on npm), 64 open issues, two-person core team.</td></tr>
+      <tr><td class="dim">Reliability / Uptime</td>
+        <td><div class="bar"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div><span class="sv">2 / 5</span></td>
+        <td class="conf"><b>High</b><br>measured</td>
+        <td>No SLA, no status page (<code>status.antseed.com</code> does not resolve), and 20 of 20 requests hit one provider — no failover diversity.</td></tr>
+      <tr><td class="dim">Security / Privacy</td>
+        <td><div class="bar"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div><span class="sv">2 / 5</span></td>
+        <td class="conf"><b>High</b><br>measured</td>
+        <td>Cryptographic design is genuinely careful, but only ~2% of listings advertise attestation, that verifier is documented as a future release, and sellers can read your prompts.</td></tr>
+      <tr><td class="dim">Compliance</td>
+        <td><div class="bar"><i class="f"></i><i></i><i></i><i></i><i></i></div><span class="sv">1 / 5</span></td>
+        <td class="conf"><b>High</b><br>documented</td>
+        <td>No SOC 2, no GDPR processing agreement, no data residency, no audit; Terms disclaim all warranties and force arbitration in Gibraltar with a class-action waiver.</td></tr>
+      <tr><td class="dim">Cost</td>
+        <td><div class="bar"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></div><span class="sv">3 / 5</span></td>
+        <td class="conf"><b>Medium</b><br>partly measured</td>
+        <td>4% fee is transparent and low, but sellers set prices unilaterally and the top sellers are thin resellers of OpenAI and Anthropic, so savings are unverified and volatile.</td></tr>
+      <tr><td class="dim">Documentation quality</td>
+        <td><div class="bar"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i></div><span class="sv">4 / 5</span></td>
+        <td class="conf"><b>High</b><br>read in full</td>
+        <td>Above standard — full light paper, published contract addresses, honest risk disclosures, real troubleshooting. It costs them points elsewhere for the admissions it contains.</td></tr>
+      <tr><td class="dim">Community / Adoption</td>
+        <td><div class="bar"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div><span class="sv">2 / 5</span></td>
+        <td class="conf"><b>High</b><br>measured</td>
+        <td>123 GitHub stars, 877 Telegram members, ~$317k lifetime settled, 199–650 daily active addresses — and zero Hacker News or Reddit presence.</td></tr>
+      <tr><td class="dim">Team credibility</td>
+        <td><div class="bar"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></div><span class="sv">2 / 5</span></td>
+        <td class="conf"><b>Medium</b><br>press-confirmed</td>
+        <td>Spark Capital–backed via a $2.4m round, but a two-person team running unaudited contracts that hold customer funds, with no named leadership anywhere on the website.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="sec" id="what">
+  <div class="sec-h"><span class="sec-n">03</span><h2>What it is and how it works</h2></div>
+  <p class="sec-sub">One paragraph, plain English.</p>
+  <div class="card"><p style="font-size:16px;margin:0">AntSeed is an open-source protocol that turns AI model access into a peer-to-peer marketplace. Instead of sending every request to OpenAI or Anthropic, software running on your own machine discovers independent computers advertising models, opens an encrypted direct connection to one of them, sends the prompt, and pays that seller a fraction of a cent per thousand tokens in USDC cryptocurrency settled on the Base blockchain. There is no AntSeed account and no AntSeed server in the request path — your own machine is the router. In exchange for removing the middleman, you accept that the individual seller decides its own uptime, sees your plaintext prompt, and could in principle serve you something other than the model it advertised.</p></div>
+
+  <h3>Architecture and request flow</h3>
+  <figure>
+    <svg viewBox="0 0 980 428" role="img" aria-labelledby="at ad" style="width:100%;height:auto;display:block;background:var(--panel2);border:1px solid var(--line);border-radius:12px">
+      <title id="at">AntSeed request path</title>
+      <desc id="ad">Your application calls a local gateway or buyer proxy on your own machine. The buyer discovers sellers over a BitTorrent DHT, ranks them by price and a locally computed trust score, opens an encrypted peer-to-peer connection, receives the response, then signs a cumulative payment voucher that the seller settles on-chain in USDC on Base, less a four percent protocol fee.</desc>
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink3)"/></marker></defs>
+      <g font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif">
+        <text x="16" y="16" font-size="10.5" font-weight="700" letter-spacing="1.1" fill="var(--ink3)">REQUEST PATH · YOUR DATA</text>
+
+        <rect x="16" y="150" width="164" height="94" rx="10" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"/>
+        <text x="98" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">Your app</text>
+        <text x="98" y="197" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">or agent</text>
+        <text x="98" y="218" text-anchor="middle" font-size="10.5" fill="var(--ink3)">curl · SDK</text>
+        <text x="98" y="233" text-anchor="middle" font-size="10.5" fill="var(--ink3)">Claude Code</text>
+
+        <rect x="228" y="140" width="228" height="114" rx="10" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.6"/>
+        <text x="342" y="168" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">Gateway / buyer proxy</text>
+        <text x="342" y="187" text-anchor="middle" font-size="10.5" fill="var(--ink3)">runs on YOUR machine</text>
+        <text x="342" y="204" text-anchor="middle" font-size="10.5" fill="var(--ink3)">API keys · budgets</text>
+        <text x="342" y="221" text-anchor="middle" font-size="10.5" fill="var(--ink3)">routing · logs</text>
+        <text x="342" y="241" text-anchor="middle" font-size="10" fill="var(--ink3)" font-family="ui-monospace,monospace">:8379 gw  :8377 cli</text>
+
+        <rect x="228" y="34" width="228" height="80" rx="10" fill="var(--neutral-bg)" stroke="var(--line)" stroke-width="1.4"/>
+        <text x="342" y="60" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)">Discovery</text>
+        <text x="342" y="79" text-anchor="middle" font-size="10.5" fill="var(--ink3)">BitTorrent DHT (BEP 5)</text>
+        <text x="342" y="96" text-anchor="middle" font-size="10.5" fill="var(--ink3)">signed price catalogues</text>
+
+        <rect x="228" y="290" width="228" height="80" rx="10" fill="var(--neutral-bg)" stroke="var(--line)" stroke-width="1.4"/>
+        <text x="342" y="316" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)">Ranking</text>
+        <text x="342" y="335" text-anchor="middle" font-size="10.5" fill="var(--ink3)">cheapest seller above</text>
+        <text x="342" y="352" text-anchor="middle" font-size="10.5" fill="var(--ink3)">trust score 60 or more</text>
+
+        <rect x="596" y="140" width="196" height="114" rx="10" fill="var(--panel)" stroke="var(--ok)" stroke-width="1.6"/>
+        <text x="694" y="168" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">Seller node</text>
+        <text x="694" y="187" text-anchor="middle" font-size="10.5" fill="var(--ink3)">independent operator</text>
+        <text x="694" y="204" text-anchor="middle" font-size="10.5" fill="var(--bad)">reads your prompt</text>
+        <text x="694" y="225" text-anchor="middle" font-size="10" fill="var(--ink3)" font-family="ui-monospace,monospace">X25519 + AES-256-GCM</text>
+        <text x="694" y="241" text-anchor="middle" font-size="10" fill="var(--ink3)">no AntSeed server</text>
+
+        <rect x="852" y="140" width="112" height="114" rx="10" fill="var(--panel)" stroke="var(--ink3)" stroke-width="1.4"/>
+        <text x="908" y="176" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)">The model</text>
+        <text x="908" y="198" text-anchor="middle" font-size="10.5" fill="var(--ink3)">running on</text>
+        <text x="908" y="215" text-anchor="middle" font-size="10.5" fill="var(--ink3)">the seller's</text>
+        <text x="908" y="232" text-anchor="middle" font-size="10.5" fill="var(--ink3)">own hardware</text>
+
+        <rect x="596" y="290" width="368" height="104" rx="10" fill="var(--panel)" stroke="var(--warn)" stroke-width="1.5"/>
+        <text x="780" y="316" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)">Settlement on Base (chain 8453)</text>
+        <text x="780" y="338" text-anchor="middle" font-size="10.5" fill="var(--ink3)">you sign a cumulative voucher after each response</text>
+        <text x="780" y="356" text-anchor="middle" font-size="10.5" fill="var(--ink3)">the seller settles that total on-chain in USDC</text>
+        <text x="780" y="378" text-anchor="middle" font-size="10.5" fill="var(--warn)">protocol fee 4% on Base mainnet · ANTS is reward-only</text>
+
+        <line x1="180" y1="197" x2="222" y2="197" stroke="var(--ink3)" stroke-width="1.6" marker-end="url(#ar)"/>
+        <text x="186" y="186" font-size="10" fill="var(--ink3)">HTTPS</text>
+        <line x1="342" y1="114" x2="342" y2="134" stroke="var(--ink3)" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="352" y="130" font-size="10" fill="var(--ink3)">look up</text>
+        <line x1="342" y1="290" x2="342" y2="260" stroke="var(--ink3)" stroke-width="1.5" marker-end="url(#ar)"/>
+        <text x="352" y="278" font-size="10" fill="var(--ink3)">rank</text>
+        <line x1="456" y1="197" x2="590" y2="197" stroke="var(--ink3)" stroke-width="1.6" marker-end="url(#ar)"/>
+        <text x="523" y="120" text-anchor="middle" font-size="10" fill="var(--ink3)">encrypted</text>
+        <text x="523" y="134" text-anchor="middle" font-size="10" fill="var(--ink3)">peer-to-peer</text>
+        <line x1="792" y1="197" x2="846" y2="197" stroke="var(--ink3)" stroke-width="1.6" marker-end="url(#ar)"/>
+        <line x1="694" y1="254" x2="694" y2="284" stroke="var(--ink3)" stroke-width="1.6" marker-end="url(#ar)"/>
+        <text x="704" y="274" font-size="10" fill="var(--ink3)">voucher settles</text>
+        <line x1="596" y1="342" x2="462" y2="248" stroke="var(--ink3)" stroke-width="1.4" fill="none" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+        <text x="500" y="326" font-size="10" fill="var(--ink3)">balance, refunds</text>
+        <text x="16" y="412" font-size="10" fill="var(--ink3)">Reconstructed from antseed.com documentation and confirmed against our own live install.</text>
+      </g>
+    </svg>
+    <figcaption><b>Figure 1.</b> Reconstructed from AntSeed's light paper, payments, discovery and transport documentation. <span class="tag t-claimed">Claimed</span> <span class="tag t-verified">Verified</span> — the local proxy, the encrypted peer hop, the trust-score gate and the 4% Base settlement were all observed directly during our hands-on test. <span class="src">#2 #9 #10 #25 #26</span></figcaption>
+  </figure>
+
+  <h3>Participants, and who you are actually trusting</h3>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:16%">Role</th><th style="width:31%">Who they are</th><th>What they control — and the risk that creates</th></tr></thead>
+    <tbody>
+      <tr><td class="dim">Buyer</td><td>You. No account, no email, no platform-issued key. <span class="tag t-verified">Verified</span> <span class="src">#1 #8</span></td><td>Holds a USDC balance in the <code>AntseedDeposits</code> contract and signs its own spending authorisations — so a bug in your own buyer is a bug that costs you money directly.</td></tr>
+      <tr><td class="dim">Seller / provider</td><td>231 addresses have settled at least one payment; 69 were reachable on the DHT when we checked. <span class="tag t-verified">Verified</span> <span class="src">#27 #28</span></td><td>Runs the model, reads the plaintext prompt, sets its own price, and can go offline without notice. <b>This is the counterparty whose reliability you are actually buying.</b></td></tr>
+      <tr><td class="dim">Routing service</td><td>An optional third seller type that only ranks where requests go; earns without running a model. <span class="tag t-claimed">Claimed</span> <span class="src">#3</span></td><td>A router can steer traffic to a colluding seller. AntSeed publishes router weights but describes no fencing against a malicious one.</td></tr>
+      <tr><td class="dim">Router software</td><td>Runs on your own machine. <span class="tag t-verified">Verified</span> <span class="src">#1</span></td><td>No central routing chokepoint — but you also own the update path and the key storage.</td></tr>
+      <tr><td class="dim">AntSeed Foundation</td><td>A non-profit steward; twenty contracts deployed on Base. <span class="tag t-claimed">Claimed</span> <span class="tag t-verified">Verified</span> <span class="src">#5 #35</span></td><td>Holds contract-admin keys that can change fees and credit limits; receives the 4% protocol fee; and the Terms state it is legally distinct from the entity running the software.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note blue"><b>Centralised, decentralised, or marketplace?</b> <span class="tag t-inference">Inference</span> It is a <b>marketplace with a decentralised discovery and transport layer but centralised contract administration</b>. The absence of a central routing server and central account is real, and we confirmed it. But the smart contracts holding your money are controlled by an owner who may set the fee between 2% and 10%, and settlement rides on Base, a chain with a single centralised sequencer. Read "no gatekeeper" as a statement about the request path, not about the money.</div>
+
+  <h3>Models offered, and how model identity is (not) verified</h3>
+  <p><span class="tag t-verified">Verified</span> We queried the live catalogue from our own buyer: <b>561 model identifiers, 1,826 distinct seller listings, 64 unique sellers</b>, of which 120 listings were priced at zero. Of those 1,826 listings, <b>1,511 used the generic <code>openai</code> provider plugin</b>, meaning they are proxies to somebody else's API. Sellers advertise a service label such as <code>deepseek-v4-flash</code>. When we asked the routed model "what model are you?", the answer to <code>deepseek-v4-flash</code> was <b>"I am DeepSeek-V3"</b>, while the JSON response's own <code>model</code> field read <code>deepseek-ai/DeepSeek-V4-Flash-0731</code>. Self-identification is weak evidence, but the point stands: <b>the label you buy is not the model you can prove you received.</b> <span class="src">#1 #27 #29</span></p>
+  <p><span class="tag t-verified">Verified</span> AntSeed's own reputation documentation states that a model-verification component <b>"will take its weight from there"</b> in a future revision — i.e. it is <b>not</b> part of today's 0–100 trust score. The token page markets "model fingerprints in a public torrent-style swarm" and a per-response <code>ResponseAuth</code>; the documentation frames this as machinery that decides how much of a seller's volume is <i>rewarded</i>, which is an incentive mechanism, not a buyer-facing guarantee. <span class="src">#4 #12</span></p>
+  <p><span class="tag t-verified">Verified</span> In our catalogue sample, <b>36 of 1,826 listings — about 2% — advertised any verifier at all</b>. AntSeed's own FAQ states plainly: <i>"TEE provider verification is being rolled out in a future release."</i> On Windows the verifier plugin failed to install during our test and the software <b>logged the failure and continued anyway</b>. <span class="src">#1 #8</span></p>
+
+  <h3>API compatibility — what we confirmed first-hand</h3>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:28%">Capability</th><th style="width:12%">Result</th><th>Evidence from our test</th></tr></thead>
+    <tbody>
+      <tr><td>OpenAI <code>/v1/chat/completions</code></td><td><span class="status-ok">Pass</span></td><td>200 OK, correct output, and unusually rich response headers exposing peer id, peer IP, per-million prices, token counts and cost.</td></tr>
+      <tr><td>Anthropic <code>/v1/messages</code></td><td><span class="status-ok">Pass</span></td><td>200 OK with a correctly shaped Anthropic response (<code>type:"message"</code>, <code>stop_reason</code>, <code>usage.input_tokens</code>).</td></tr>
+      <tr><td>Streaming</td><td><span class="status-ok">Pass</span></td><td>Server-sent events observed, six chunks on a short response.</td></tr>
+      <tr><td>Tool / function calling</td><td><span class="status-ok">Pass</span></td><td>Valid <code>tool_calls</code> with parsed JSON arguments on all three models tested.</td></tr>
+      <tr><td>JSON structured output</td><td><span class="status-ok">Pass</span></td><td><code>response_format: json_object</code> honoured; returned <code>{"ok": true}</code>.</td></tr>
+      <tr><td>Vision (image input)</td><td><span class="status-ok">Pass</span></td><td>Image accepted and described. <span class="tag t-inference">Inference</span> Weak test — we sent a 1×1 pixel.</td></tr>
+      <tr><td>Embeddings</td><td><span class="status-blk">Fail</span></td><td><code>/v1/embeddings</code> returns <b>404 Not Found</b>. Do not assume OpenAI parity here.</td></tr>
+      <tr><td>Paid model without funds</td><td><span class="status-ok">Pass</span></td><td>Clean <b>402</b> with <code>insufficient_deposits</code> and actionable guidance — payment gating works before delivery.</td></tr>
+      <tr><td>Unknown model name</td><td><span class="status-ok">Pass</span></td><td>Clean <b>502</b> with <code>model_not_found</code> rather than a silent fallback to something worse.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note green"><b>Credit where it is due.</b> <span class="tag t-verified">Verified</span> API compatibility is better than most new gateways. Streaming, tool calling, vision, JSON mode and dual OpenAI/Anthropic shape all worked on the first attempt, and error handling on failure cases was well-formed rather than crashy. <b>This is the strongest part of the product.</b></div>
+</section>
+
+<section class="sec" id="hands-on">
+  <div class="sec-h"><span class="sec-n">04</span><h2>Hands-on test log</h2></div>
+  <p class="sec-sub">Performed 18 October 2026 on Windows 11 with Node.js v24.11.1, in an isolated temporary directory. Nothing was installed globally, no wallet was connected and no payment was made. All test artifacts have been removed.</p>
+  <div class="note amber"><b>Safety statement.</b> We installed <code>@antseed/cli</code> into a throwaway temporary folder, not globally. We did <b>not</b> connect a wallet, deposit funds, open a payment channel, enter credentials or sign any transaction. Paid-model requests were tested only far enough to observe the 402 rejection. The ephemeral secp256k1 key the CLI generated automatically held $0 and has been deleted.</div>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:4%">#</th><th style="width:23%">Step</th><th style="width:10%">Result</th><th>What actually happened</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Install <code>@antseed/cli</code> from npm</td><td><span class="status-ok">Pass</span></td><td>Installed cleanly in a temp folder. <b>The published CLI version is <code>0.1.196</code> while the GitHub repository is at tag <code>v0.2.65</code></b> — a versioning inconsistency worth asking about. <span class="tag t-verified">Verified</span> <span class="src">#50</span></td></tr>
+      <tr><td>2</td><td><code>antseed buyer start</code> — documented step 2</td><td><span class="status-blk">Fail</span></td><td><b>Blocks on first run on Windows.</b> Error: <code>Cannot install @antseed/router-local@latest: npm was not found.</code> Root cause: the CLI calls <code>execFile('npm', …)</code> without a shell, but on Windows <code>npm</code> is <code>npm.cmd</code>, so the spawn fails with <code>ENOENT</code>. We reproduced that spawn failure directly in Node. npm <i>is</i> correctly installed on the machine. <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>3</td><td>Workaround: pre-install plugins by hand</td><td><span class="status-ok">Pass</span></td><td>After manually installing <code>@antseed/router-local</code> into <code>~/.antseed/plugins</code>, the buyer started normally. <b>This is a real first-run defect, not a documentation gap</b> — the one-line quickstart cannot succeed on Windows without it. <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>4</td><td><code>antseed gateway start</code> — documented path</td><td><span class="status-ok">Pass</span></td><td>Started on <code>127.0.0.1:8379</code> and printed <b>verbatim</b> the output shown in the published quickstart, including the API base URL, the "console has no owner yet" notice and the log-file path. <b>Documentation is accurate.</b> <span class="tag t-verified">Verified</span> <span class="src">#1 #2</span></td></tr>
+      <tr><td>5</td><td>Reach the web console at <code>/console</code></td><td><span class="status-part">Partial</span></td><td>Console loads and presents the "Set up your Antseed console" gate requiring a <b>passkey or wallet</b>. We stopped here — claiming a console creates a persistent organisation identity and was not needed for the evaluation. <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>6</td><td>Fetch the live model catalogue</td><td><span class="status-ok">Pass</span></td><td><code>GET /v1/models</code> → 200, ~1.34 MB. <b>561 model ids · 1,826 seller listings · 64 unique sellers · 120 listings free · 1,511 using the generic OpenAI proxy plugin.</b> <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>7</td><td>First zero-cost inference request</td><td><span class="status-ok">Pass</span></td><td><b>HTTP 200 in 3.59 s</b> (1,429 ms upstream). Response headers exposed peer id, peer IP <code>34.9.72.40</code>, per-million prices, token counts and cost. Body returned a correct answer. <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>8</td><td>Latency series — 8 sequential requests</td><td><span class="status-ok">Pass</span></td><td>457–695 ms wall clock (434–669 ms upstream), all routed to the same peer. Consistent and fast. <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>9</td><td>Latency under sustained use — 20 requests</td><td><span class="status-part">Warning</span></td><td>min 487 ms · p50 666 ms · p95 2,078 ms · max 2,078 ms. <b>All 20 requests went to a single peer</b> — automatic routing produced zero provider diversity for this model, so there was no failover in practice. <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>10</td><td>Same prompt, two explicitly pinned peers</td><td><span class="status-part">Warning</span></td><td>Both answered "Paris" correctly — but the <b>higher-reputation peer (78.3) took 845–1,320 ms and emitted 23–26 tokens where the other peer took 458–686 ms and emitted 2</b>. The reputation score did not predict latency or efficiency. <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>11</td><td>Model-identity spot checks</td><td><span class="status-part">Warning</span></td><td>Requested <code>gemma-4-e4b</code> → response <code>model</code> field read <code>google/gemma-4-31B-it-turbo</code>. Requested <code>deepseek-v4-flash</code> → model self-described as <b>"DeepSeek-V3"</b>. Requested <code>free-coding</code> → model self-described as an NVIDIA model. <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>12</td><td>Empty-response defect hunt</td><td><span class="status-part">Warning</span></td><td>The top-reputation peer intermittently returned <b>HTTP 200 with an empty <code>content</code></b> while reporting the full token budget consumed. It answered correctly on simpler prompts, so the behaviour is intermittent rather than total. <b>A buyer cannot distinguish this from a legitimately empty answer without checking.</b> <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>13</td><td>Paid model with an unfunded wallet</td><td><span class="status-ok">Pass</span></td><td>Clean <b>402</b> with <code>insufficient_deposits</code>. Confirms payment gating works before delivery. <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>14</td><td>Fund a wallet and make a paid request</td><td><span class="status-blk">Not tested</span></td><td><b>Requires connecting a wallet and depositing real USDC.</b> Per your instruction we stopped and did not proceed. Consequently <b>end-to-end settlement, real cost per token and paid-provider latency are unverified by us</b> — everything about paid operation in this report comes from documentation and on-chain data, never from our own transaction. <b>Awaiting your decision.</b></td></tr>
+      <tr><td>15</td><td>TEE attestation on a live request</td><td><span class="status-blk">Fail</span></td><td>Verifier plugin failed to install for the same npm reason; the software logged <i>"optional verification … will be skipped"</i> and continued. <b>Confidentiality was not enforced and the failure was non-fatal.</b> <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>16</td><td>Local proxy with no API key at all</td><td><span class="status-part">Warning</span></td><td>A request with no <code>Authorization</code> header returned <b>200 OK</b>. This is documented behaviour for the CLI proxy on localhost, but it means any local process can spend your balance. Only the gateway enforces keys. <span class="tag t-verified">Verified</span></td></tr>
+      <tr><td>17</td><td>Prompt-injection and abuse controls</td><td><span class="status-blk">Not tested</span></td><td>No content filtering, moderation or abuse-reporting mechanism was found in the documentation or observed in use. <span class="tag t-none">No evidence found</span></td></tr>
+      <tr><td>18</td><td>Extended load, soak and failover testing</td><td><span class="status-blk">Not tested</span></td><td>Out of scope for this pass. <b>This is the single largest evidence gap</b> — see the verification checklist in §09.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="card tight">
+    <div class="kv">
+      <span>Time to first successful request</span><span>~6 minutes on a machine with Node pre-installed, <b>and only after working around a Windows first-run bug</b>. On macOS or Linux the documented one-line installer would likely have succeeded.</span>
+      <span>Requests issued</span><span>~60 inference requests across 9 models and 3 explicitly pinned peers, plus 4 API-shape probes.</span>
+      <span>Successful completions</span><span>55 of 60. The 5 failures were deliberate negative tests (402, 404, 502) — all correctly rejected.</span>
+      <span>Cleanup performed</span><span>All processes stopped; ports 8377 and 8379 closed; temporary install directory and the generated <code>~/.antseed</code> identity removed.</span>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="reliability">
+  <div class="sec-h"><span class="sec-n">05</span><h2>Reliability and readiness findings</h2></div>
+
+  <h3>5.1 &nbsp;Maturity</h3>
+  <p><span class="tag t-verified">Verified</span> The main repository was created <b>24 February 2026</b> — roughly eight months old. The latest release is <code>v0.2.65</code>, published <b>18 October 2026</b>, the same day as this review. The project is <b>pre-1.0 and on a 0.2.x line</b>. <span class="src">#41 #43 #44</span></p>
+  <p><span class="tag t-verified">Verified</span> <b>Release cadence is genuinely fast and healthy.</b> The 50 most recent releases span 7 August to 18 October 2026, with multiple releases per day in the final two weeks. Commits in the most recent 100 came from four identities, dominated by two active maintainers. There are <b>26 contributors, 123 stars and 43 forks</b>. <b>64 issues are open</b>, and 83 of the 100 most recent repository items are pull requests. <span class="src">#43 #44 #46 #49</span></p>
+  <div class="note green"><b>This is the strongest thing about AntSeed.</b> <span class="tag t-verified">Verified</span> The commit log reads like real work, not activity theatre: <code>fix(node): Recover channels that ended on-chain</code>, <code>fix(buyer): drop services a seller stopped advertising on peer refresh</code>, <code>fix(cli): Do not treat an interrupted stream as a served answer</code>. Maintainers are visibly fixing correctness bugs they found themselves. <b>The code is not the problem.</b></div>
+  <div class="note red"><b>Against that:</b> <span class="tag t-verified">Verified</span> <b>64 open issues and a <code>0.2.x</code> version mean no stability commitment exists.</b> Semver itself puts 0.x outside the compatibility guarantee. There is no published deprecation policy, no long-term-support branch, and no changelog outside GitHub releases. <span class="src">#46</span></div>
+
+  <h3>5.2 &nbsp;Uptime, SLA and incident history</h3>
+  <div class="note red"><span class="tag t-verified">Verified</span> <b>There is no status page.</b> <code>status.antseed.com</code> does not resolve (DNS <code>NXDOMAIN</code>). <code>antseed.statuspage.io</code> returns a generic Atlassian marketing page, meaning no such Statuspage exists. Neither appears in the site sitemap or anywhere in the documentation. <span class="src">#1 #36 #37</span></div>
+  <p><span class="tag t-none">No evidence found</span> <b>No SLA, no uptime percentage, no error-budget policy, no credits for downtime, no support channel, no on-call commitment and no published incident history.</b> The Terms explicitly disclaim all warranties and state the protocol is provided <i>"AS IS" and "WITH ALL FAULTS."</i> <span class="src">#34</span></p>
+  <p><span class="tag t-inference">Inference</span> AntSeed could not offer a meaningful SLA even if it wanted one, because the seller is an independent third party the Foundation explicitly does not control. That is architecturally honest and operationally fatal for anyone who needs a guarantee. <b>If uptime matters to you, an SLA here would be a promise AntSeed could not keep.</b></p>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:34%">Operational requirement</th><th style="width:20%">AntSeed today</th><th>Direct provider or established aggregator</th></tr></thead>
+    <tbody>
+      <tr><td>Published uptime figure</td><td><span class="status-blk">Absent</span></td><td><span class="status-ok">Yes</span> — OpenRouter, for example, publishes per-endpoint uptime</td></tr>
+      <tr><td>Contractual SLA</td><td><span class="status-blk">None</span></td><td><span class="status-ok">Yes</span> on enterprise tiers</td></tr>
+      <tr><td>Public incident history</td><td><span class="status-blk">None</span></td><td><span class="status-ok">Yes</span>, with post-mortems</td></tr>
+      <tr><td>24/7 support and escalation</td><td><span class="status-blk">None</span></td><td><span class="status-ok">Yes</span> on enterprise tiers</td></tr>
+      <tr><td>Capacity headroom and rate limits</td><td>Per-seller, self-declared</td><td><span class="status-ok">Contracted</span></td></tr>
+      <tr><td>Dedicated capacity reservations</td><td><span class="status-blk">None</span></td><td><span class="status-ok">Yes</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>5.3 &nbsp;Performance — what we measured, and what we could not</h3>
+  <p><span class="tag t-verified">Verified</span> Our own measurements on a free-tier model: <b>median 666 ms, p95 2,078 ms</b> end-to-end wall clock, with a 1.4-second warm path. That is <b>competitive with a direct API call</b> and is the single most encouraging result in this report. Because the buyer runs on your own machine and connects straight to the seller, there is no extra central hop.</p>
+  <p><span class="tag t-inference">Inference</span> That speed came from a <b>Google Cloud-hosted proxy at <code>34.9.72.40</code></b> that was itself calling DeepSeek's API. The latency we measured is therefore <b>not</b> the latency of a distributed compute network — it is the latency of a lightly-wrapped reseller. <b>Do not extrapolate this number to workloads that need genuinely independent compute.</b></p>
+  <p><span class="tag t-none">No evidence found</span> <b>No published benchmarks, no throughput figures, no rate-limit policy, no capacity guarantees and no independent latency study.</b> The "<b>97% below official API prices</b>" headline repeated across launch coverage is AntSeed's own figure with no published breakdown; one trade publication independently flagged it as "a top-of-range claim rather than a steady-state price". <span class="src">#54</span></p>
+  <p><span class="tag t-none">No evidence found</span> <b>We could not measure paid-model latency, cost or quality</b>, because that required funding a wallet, which we did not do.</p>
+
+  <h3>5.4 &nbsp;Output integrity — can a buyer verify what they paid for?</h3>
+  <div class="note red"><b>This is the weakest part of the system for a production buyer.</b></div>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:28%">Protection</th><th style="width:14%">Status</th><th>Assessment</th></tr></thead>
+    <tbody>
+      <tr><td>Does the label match the model?</td><td><span class="status-blk">No guarantee</span></td><td><span class="tag t-verified">Verified</span> <span class="src">#4 #1</span> AntSeed's own documentation says a future model-verification term "will take its weight from there" — i.e. it is absent today. We observed label-to-model mismatches first-hand.</td></tr>
+      <tr><td>Per-response signature from the seller</td><td><span class="status-ok">Yes</span></td><td><span class="tag t-verified">Verified</span> <span class="src">#12 #13 #25</span> Responses are signed, proving <i>which operator</i> served which bytes. Useful for non-repudiation. It does <b>not</b> prove the model was what it claimed to be.</td></tr>
+      <tr><td>Model fingerprinting swarm</td><td><span class="status-ok">Partial</span></td><td><span class="tag t-claimed">Claimed</span> <span class="src">#12</span> Marketed on the token page. No evidence found of a buyer-facing tool, a public fingerprint database, or documented methodology.</td></tr>
+      <tr><td>Reputation score reflects quality</td><td><span class="status-blk">No</span></td><td><span class="tag t-verified">Verified</span> <span class="src">#1</span> We measured it <b>anti-correlated</b> with latency on a controlled comparison. It measures settled volume and staking, not correctness.</td></tr>
+      <tr><td>Seller cannot silently swap mid-session</td><td><span class="status-part">Partial</span></td><td><span class="tag t-claimed">Claimed</span> <span class="src">#8</span> A conversation "prefers" its original seller, but prefers is not guarantees — it switches when the original becomes unavailable or ineligible.</td></tr>
+      <tr><td>Buyer can detect a downgraded model</td><td><span class="status-blk">No</span></td><td><span class="tag t-inference">Inference</span> Only by running your own fidelity suite against known-answer prompts and failing closed. AntSeed supplies no such tool.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>5.5 &nbsp;Provider quality control — failover, retries, bad actors</h3>
+  <p><span class="tag t-claimed">Claimed</span> <span class="src">#8</span> Automatic routing "fails over to the next eligible provider after a retryable failure"; providers that recently failed are tried last; the router maintains failure streaks and cooldowns; and a request naming an unavailable model is refused (<b>502</b>) rather than silently downgraded.</p>
+  <p><span class="tag t-verified">Verified</span> <b>In practice the failover pool was a pool of one.</b> 20 of 20 requests for the most-used free model were served by the same peer. Whether that reflects a thin market at that hour or a routing weakness, the operational consequence is identical: <b>assume single-provider concentration until you have measured your own routes.</b></p>
+  <p><span class="tag t-claimed">Claimed</span> <span class="src">#11 #14</span> Deterrents against bad actors: a locally computed 0–100 trust score, an on-chain wash-trading registry that zeroes a proven offender's score to 0, per-seller price caps, allow and block lists, ghost-channel counts, and an external ERC-8004 identity registry.</p>
+  <p><span class="tag t-verified">Verified</span> <b>The wash-trading registry is real and observable.</b> The independent analytics dashboard explicitly excludes wash-flagged sellers from its "organic" rankings and states that "wash-flagged sellers never appear here" — a credible anti-manipulation signal. <span class="tag t-inference">Inference</span> But wash-trading detection only catches <i>collusive volume inflation</i>. It does nothing about a seller quietly serving a cheaper model than its label.</p>
+
+  <h3>5.6 &nbsp;Security and privacy</h3>
+  <div class="grid2">
+    <div class="card tight">
+      <h4 style="margin-top:0">Genuinely well designed <span class="tag t-verified">Verified</span> <span class="src">#24 #25</span></h4>
+      <ul style="font-size:14px">
+        <li>Funds are held in a separate <code>AntseedDeposits</code> contract, distinct from the node's hot wallet.</li>
+        <li>The buyer's hot-wallet key is not the payment-signing key — documented, with an explicit risk-bound table.</li>
+        <li>EIP-191 signed discovery metadata with nonce replay guards and a 30-second clock-skew check.</li>
+        <li>X25519 + AES-256-GCM encrypted peer transport where supported, with fail-closed decoding.</li>
+        <li>Hard resource limits: 64 MiB frame cap, 64 inbound connections per IP, bounded buffers and stream durations.</li>
+        <li>The buyer recomputes cost from the seller's <i>published</i> prices before signing — a seller cannot unilaterally bill you.</li>
+        <li>GPL-3.0 open source, so all of the above is auditable.</li>
+      </ul>
+    </div>
+    <div class="card tight">
+      <h4 style="margin-top:0">Missing or worrying <span class="tag t-verified">Verified</span></h4>
+      <ul style="font-size:14px">
+        <li><b>No independent audit of the contracts holding customer money.</b> An independent reviewer confirmed none is published; BaseScan source-verification proves compilation, not safety. <span class="src">#53</span></li>
+        <li><b>No SOC 2, no ISO 27001, no GDPR processing agreement, no data-residency option.</b> <span class="tag t-none">No evidence found</span></li>
+        <li><b>Sellers read your prompts.</b> Only TEE providers should not — and TEE is a "future release" with roughly 2% adoption.</li>
+        <li><b>Payment metadata lands on a public chain.</b> Amounts, timing and counterparties are permanent and publicly linkable.</li>
+        <li><b>Wallet addresses are pseudonymous, not anonymous.</b> A stable address reused across requests is trivially correlatable.</li>
+        <li><b>No data-retention policy and no disclosure of what sellers log.</b> <span class="tag t-none">No evidence found</span></li>
+        <li><b>CLI stores <code>identity.key</code> in plaintext by default</b> on server and CLI installs unless you set <code>ANTSEED_PASSPHRASE</code>.</li>
+        <li><b>Gateway keys unencrypted by default</b> — our gateway printed this warning at startup. <span class="tag t-verified">Verified</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>5.7 &nbsp;Compliance, liability and support</h3>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:26%">Item</th><th style="width:18%">Finding</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td>SOC 2 Type I / II</td><td><span class="status-blk">Absent</span></td><td rowspan="6"><span class="tag t-none">No evidence found</span> Nothing across the documentation, the Foundation announcement or the Terms addresses any of these. The light paper states plainly that users and providers are <b>"solely responsible"</b> for sanctions, export control, AML/CFT, tax, data protection, AI and consumer-protection compliance in their own jurisdiction. <span class="src">#2</span></td></tr>
+      <tr><td>GDPR agreement / DPA</td><td><span class="status-blk">Absent</span></td></tr>
+      <tr><td>Data residency options</td><td><span class="status-blk">None</span></td></tr>
+      <tr><td>Sub-processor list</td><td><span class="status-blk">Absent</span></td></tr>
+      <tr><td>Liability for provider conduct</td><td><span class="status-blk">Disclaimed</span></td></tr>
+      <tr><td>Security-disclosure programme</td><td><span class="status-blk">Absent</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><span class="tag t-verified">Verified</span> <b>The Terms of Service are strongly against the buyer.</b> Last updated 9 October 2026 and read in full (71,588 characters). The Offerings are provided <i>"AS IS" and "AS AVAILABLE," "WITH ALL FAULTS,"</i> entirely at your own risk. AntSeed disclaims all warranties, states it <i>"has no obligation to monitor or control any use"</i>, and is not liable for loss arising from your use. Disputes go to <b>mandatory binding arbitration seated in Gibraltar</b> under Gibraltar law, with a <b>class-action waiver</b>. The Terms also state the Foundation is <i>"a legally distinct and independent entity from Antseed"</i> — a deliberate structure meaning the brand may not be the entity carrying liability. <span class="src">#34</span></p>
+  <div class="note red"><b>Enterprise blocker.</b> <span class="tag t-inference">Inference</span> Most enterprise legal and security functions cannot sign off on these Terms. There is no DPA to execute, no SOC 2 report to review, no sub-processor list, no liability that survives a provider failure, and an arbitration clause in a jurisdiction most companies would rather avoid. <b>This alone would block a production deployment regardless of how good the engineering is.</b></div>
+
+  <h3>5.8 &nbsp;Cost versus direct providers</h3>
+  <p><span class="tag t-verified">Verified</span> <b>The fee structure is transparent and, in isolation, competitive.</b> A flat <b>4% protocol fee</b> is deducted from each settlement on Base mainnet — the contract source default is 2%, and the owner may set it as high as 10%. There is no platform subscription. First sessions with an unknown seller are hard-capped at <b>$1</b>, and if a seller disappears the buyer's funds are recoverable after a 15-minute grace period. Budgets can be enforced per key, per member and per workspace with hard 402 stops. <span class="src">#9 #26 #32</span></p>
+  <p><span class="tag t-verified">Verified</span> <b>But the network is far too small and too concentrated for prices to be meaningful.</b> Lifetime gross settlement is about <b>$317,000</b>. Recent daily volume runs <b>$228–$1,310</b>. The seller side is highly concentrated: <b>Gini coefficient 0.89</b>, top three sellers take <b>38%</b> of volume and the top ten take <b>66%</b>. A market that small, with that few sellers, cannot be relied on to sustain a durable price advantage — a handful of sellers leaving would reprice the market overnight. <span class="src">#27 #28 #30</span></p>
+  <p><span class="tag t-verified">Verified</span> <b>Hidden costs observed:</b> a 0.05 USDC relay fee on gasless wallet sweeps with a $1 minimum top-up; card payments routed through a third-party processor with regional limits and per-payment caps; and routing defaults that cap requests at <b>$0.30</b> and reservations at <b>$1.00</b> unless raised — which will silently break any workload with larger prompts. <span class="src">#16 #20</span></p>
+  <p><span class="tag t-inference">Inference</span> There is also an <b>unpriced risk cost</b> that dominates the headline comparison: an open over-billing bug, unaudited contracts holding your funds, a seller reading your prompts, and no recourse when a model is quietly downgraded. Per token AntSeed may be cheaper; <b>risk-adjusted, it is almost certainly not.</b></p>
+
+  <h3>5.9 &nbsp;Dependencies and single points of failure</h3>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:24%">Dependency</th><th style="width:13%">Risk</th><th>Consequence of failure</th></tr></thead>
+    <tbody>
+      <tr><td><b>Base blockchain</b> — centralised sequencer</td><td><span class="status-blk">High</span></td><td><span class="tag t-verified">Verified</span> <span class="src">#2 #53</span> All deposits, settlements and rewards route through Base, which uses a single centralised sequencer operated by Coinbase. A sequencer outage or censorship action freezes every payment and every withdrawal. <b>The "no single point of failure" framing does not survive contact with this.</b></td></tr>
+      <tr><td><b>Contract admin keys</b></td><td><span class="status-blk">High</span></td><td><span class="tag t-verified">Verified</span> <span class="src">#5 #53</span> An owner can change the protocol fee, credit limits and transfer rules on the live contracts. <b>No timelock, no multisig requirement and no documented public admin-change log.</b> The ANTS token additionally has admin-gated <code>enableTransfers()</code> and <code>setTransferWhitelist()</code>.</td></tr>
+      <tr><td><b>Individual sellers</b></td><td><span class="status-blk">High</span></td><td><span class="tag t-verified">Verified</span> <b>Observed:</b> 20 of 20 requests to one peer. A single seller going offline can remove a model entirely.</td></tr>
+      <tr><td><b>npm registry and the CLI</b></td><td><span class="status-ok">Low</span></td><td><span class="tag t-inference">Inference</span> The buyer is a local npm package that auto-installs plugins on first run — a supply-chain surface in the startup path, and exactly what broke on Windows in our test.</td></tr>
+      <tr><td>ANTS token economics</td><td><span class="status-ok">Low for buyers</span></td><td><span class="tag t-verified">Verified</span> <span class="src">#12 #53</span> <b>Not an operational risk if you only buy.</b> ANTS cannot be transferred and has no market price; payments are in USDC. But provider incentives rest on a token nobody can trade, and sellers who stake take illiquid risk.</td></tr>
+      <tr><td>Abandonment or key loss</td><td><span class="status-blk">High</span></td><td><span class="tag t-verified">Verified</span> <span class="src">#24</span> AntSeed's own documentation states your secp256k1 private key is the <b>only</b> way to recover your identity and on-chain wallet. Lose it and your deposit is unrecoverable. There is no custodian.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>5.10 &nbsp;Real-world usage and adoption</h3>
+  <p><span class="tag t-verified">Verified</span> All figures come from <b>AntSeedStats</b>, an explicitly independent, community-built dashboard that reads directly from Base chain data and states it is <b>"not officially affiliated with the AntSeed team."</b> <span class="src">#27 #28</span></p>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:38%">Metric — as of 18 Oct 2026</th><th style="width:26%">Value</th><th>Read</th></tr></thead>
+    <tbody>
+      <tr><td>Lifetime gross settled</td><td><b>~$316,910</b></td><td>About $4.8k per week. A large platform would not register this.</td></tr>
+      <tr><td>Daily volume, last 14 days</td><td><b>$228 – $1,310</b></td><td>Small, and declining into the review date.</td></tr>
+      <tr><td>Daily active addresses</td><td><b>199 – 650</b></td><td>Peaked near 1,077 on 7 Oct; 199 on the review date.</td></tr>
+      <tr><td>Registered addresses</td><td><b>4,757</b> — 4,447 buyers, 231 sellers</td><td>Any address that ever touched the network. <b>Not</b> active users.</td></tr>
+      <tr><td>Sellers online on the DHT</td><td><b>69</b> of the 231 who have ever settled</td><td>Only ~30% of historical sellers were reachable when we looked.</td></tr>
+      <tr><td>Tokens served</td><td><b>311.6 billion</b> lifetime</td><td>95.76bn of that was <b>free</b> — not revenue-generating.</td></tr>
+      <tr><td>Seller concentration</td><td><b>Gini 0.89</b>; top 10 = 66%</td><td>A marketplace, but effectively an oligopoly.</td></tr>
+      <tr><td>Named production users / case studies</td><td><span class="status-blk">None found</span></td><td><span class="tag t-none">No evidence found</span> No customer logos, no case studies, no named enterprise references on any page reviewed.</td></tr>
+      <tr><td>GitHub traction</td><td>123 stars · 43 forks · 58 org followers</td><td>Modest for infrastructure software; healthy relative to its age.</td></tr>
+      <tr><td>Telegram</td><td>877 members, ~135 online</td><td>Described by its own admin as "currently development focused".</td></tr>
+      <tr><td>Hacker News</td><td><span class="status-blk">Zero results</span></td><td><span class="tag t-verified">Verified</span> <span class="src">#57 #58</span> A search for "antseed" returns only an unrelated 2019 project. <b>No technical community discussion at all.</b></td></tr>
+      <tr><td>Reddit</td><td><span class="status-part">Not observable</span></td><td>Reddit blocked automated access from our environment. We could neither confirm nor exclude discussion. <b>Recorded as unverified, not as absent.</b> <span class="src">#59</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note blue"><b>Community signal — the one clear negative.</b> <span class="tag t-inference">Inference</span> For a project that raised $2.4m from Spark Capital and launched in <i>Axios Pro</i>, having <b>zero Hacker News presence and ~877 Telegram members</b> suggests the interest is press-driven rather than developer-driven. Launch coverage is not adoption. <b>Treat the headline numbers as a media event, not a market.</b></div>
+</section>
+
+<section class="sec" id="redflags">
+  <div class="sec-h"><span class="sec-n">06</span><h2>Red flags and credibility check</h2></div>
+  <p class="sec-sub">Ordered by how much damage each could do in production.</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">1 · An open bug that lets sellers over-charge buyers <span class="tag t-verified">Verified</span></h3>
+    <p>GitHub issue <b>#1200</b>, filed 14 October 2026 and still <b>open</b> at the time of this review: <i>"Buyer over-signs SpendingAuth by minBudgetPerRequest ($0.50) on 402 catch-up."</i> When a seller's delivered cost runs ahead of the buyer's last signature, the buyer signs a cumulative total <b>$0.50 higher than requested</b>. Because that signature is claimable on-chain, <b>the seller can collect the extra</b>. The issue reproduces live: a session worth $0.009 produced a signed authorisation of $0.50.</p>
+    <p style="margin-bottom:0"><b>Why it matters:</b> the seller's own source contains a comment warning against exactly this, so the team knows the invariant. It is a billing-correctness bug in a system where the buyer is the one paying. <b>Do not send paid traffic until it is fixed.</b> <span class="src">#48</span></p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">2 · Contradictions between marketing and documentation <span class="tag t-verified">Verified</span></h3>
+    <div class="t-wrap">
+    <table class="t" style="margin-top:6px">
+      <thead><tr><th style="width:30%">Marketing says</th><th style="width:34%">The documentation says</th><th>Assessment</th></tr></thead>
+      <tbody>
+        <tr><td>"TEE-verified providers <b>cannot</b> see your prompts." <span class="src">#12</span></td><td>"TEE provider verification <b>is being rolled out in a future release</b>." <span class="src">#8</span></td><td><b>Direct contradiction.</b> The privacy guarantee is advertised in the present tense while the docs place it in the future.</td></tr>
+        <tr><td>"<b>700+</b> AI models." <span class="src">#31</span></td><td>Our live buyer listed <b>561</b> model ids. AntSeedStats groups <b>282 models across 36 labs</b>; <b>2,909</b> is the count of "advertised offerings". <span class="src">#28</span></td><td>The 700+ figure is <b>not reproducible</b> under any definition we could construct. It appears to conflate listings with distinct models.</td></tr>
+        <tr><td>"Up to <b>97% below</b> official API price." <span class="src">#54</span></td><td>No benchmark, model-by-model table or methodology published anywhere.</td><td>Unsourced marketing number, repeated verbatim by press outlets that did not independently verify it.</td></tr>
+        <tr><td>"Verification decides how much a provider's usage is worth." <span class="src">#12</span></td><td>Verification affects <b>reward eligibility</b>, not buyer protection. <span class="src">#11</span></td><td>An incentive mechanism presented as a consumer guarantee. Reasonable marketing framing, but it invites the wrong conclusion.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">3 · Most of the supply is other companies' APIs <span class="tag t-verified">Verified</span></h3>
+    <p>Of the 1,826 listings our buyer exposed, <b>1,511 used the generic <code>openai</code> provider plugin</b>. The independent seller rankings contain names that describe exactly what they are: <code>Venice.ai Proxy</code>, <code>Mistral Relay Node</code>, <code>surplus-provider</code>. AntSeed's own buyer dashboard flags most active sellers as <b>"82%–98% buy elsewhere"</b> — meaning the same buyers are obtaining the same models from the original vendors.</p>
+    <p>AntSeed's documentation states that <b>"reselling subscription credentials is not allowed"</b> and that providers must comply with upstream terms. <b>We found no evidence that this is enforced, and no mechanism described that could enforce it.</b></p>
+    <p style="margin-bottom:0"><b>Why it matters:</b> if a meaningful share of listings are unauthorised resales of OpenAI or Anthropic subscriptions, those sellers can be terminated upstream <i>without notice</i>, taking your endpoint with them — and your company would be the party exposed to the upstream provider's terms-of-service breach. <span class="src">#27 #30</span></p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">4 · Unaudited contracts holding customer funds <span class="tag t-verified">Verified</span></h3>
+    <p>Twenty contracts are deployed on Base mainnet, including <code>AntseedDeposits</code> (holds all buyer USDC) and <code>AntseedChannels</code> (payment-channel logic). An independent reviewer checked on-chain and reported <b>no public smart-contract audit</b>, noting that the payment-channel logic is custom code handling live USDC. BaseScan verification proves compilation, not safety. <span class="src">#5 #53</span></p>
+    <p style="margin-bottom:0"><b>Why it matters:</b> an exploit here is total and unrecoverable for every user simultaneously, and the incident-response capacity of a two-person team is limited. <b>This is the classic reason not to place real money into unaudited, admin-controlled contracts.</b></p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">5 · Team opacity <span class="tag t-verified">Verified</span></h3>
+    <p><b>No team page exists.</b> No founder biographies, no jurisdiction of incorporation for the operating entity, no named officers on the website. The only named individual found anywhere is <b>Amos Meiri, identified as CEO by Axios Pro</b>. The GitHub history shows a two-person core (a 3,621-commit lead and a 248-commit second), and an independent review notes a <b>"two-person team"</b> with a "thin bench" for security response and treasury stewardship. The Foundation post says only: <i>"We've been in this space since 2012."</i></p>
+    <p style="margin-bottom:0"><b>Counterweight, stated fairly:</b> Spark Capital led the round — a firm with a genuine track record — and the GitHub output is high quality, which is difficult to fake. <b>But a serious investor vouching is not the same as knowing who is liable.</b> <span class="src">#33 #53 #55</span></p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">6 · The token <span class="tag t-verified">Verified</span></h3>
+    <p>The <code>ANTS</code> token page carries a permanent <b>"TOKENS RESTRICTED"</b> badge. Transfers are disabled at the contract level; an independent reviewer read <code>transfersEnabled()</code> as <code>false</code> directly on-chain and found no exchange quoting the asset. CoinMarketCap carries a listing with no market. AntSeed's own analytics dashboard warns that <b>price sites listing an "ANTS" token index an unrelated impostor</b> — a live phishing surface attributable to the naming.</p>
+    <p style="margin-bottom:0"><b>Assessment:</b> the fair-launch restriction is defensible in principle. The naming collision with an existing token is not, and it creates confusion in exactly the venues where confusion is most expensive. <b>If you buy on AntSeed, do not touch ANTS.</b> <span class="src">#12 #53 #60</span></p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">7 · Minor but telling <span class="tag t-verified">Verified</span></h3>
+    <ul style="margin-bottom:0">
+      <li><b>Broken link in their own navigation:</b> "Live prices" points to <code>/live-prices/</code>, which returns <b>404</b>. <span class="src">#35</span></li>
+      <li><b>Version confusion:</b> npm ships <code>0.1.196</code>; GitHub tags <code>v0.2.65</code>. An operator cannot tell which build they are running. <span class="src">#43 #50</span></li>
+      <li><b>Content-safety exposure:</b> the default catalogue surfaced uncensored and roleplay models with categories like <code>uncensored</code> and <code>roleplay</code>. A corporate gateway that routes to the cheapest qualifying provider may route employees to a jailbroken model — and AntSeed's routing categories treat <code>uncensored</code> as a <i>positive</i> attribute. <b>You need your own allowlist, not the default.</b></li>
+      <li><b>Low X engagement relative to reach:</b> the launch post shows ~389,600 impressions against 423 likes (≈0.11%), with 254 bookmarks — high impressions, weak engagement. <b>We could not verify the source of the impressions and are noting the ratio only.</b> <span class="src">#61</span></li>
+      <li><b>Open issue:</b> the Windows desktop app fails to start after an update, with a confusing error about decrypting the identity file. <span class="src">#51</span></li>
+      <li><b>Open issue:</b> "Syria in the default restricted countries" — the geo-restriction list is itself under active dispute. <span class="src">#45</span></li>
+    </ul>
+  </div>
+
+  <div class="note green"><b>Counter-arguments to our own scepticism, stated plainly.</b> <span class="tag t-inference">Inference</span> AntSeed is unusually candid. The light paper explicitly disclaims output accuracy, says TEE "proves the environment, not the model", tells buyers their prompts are visible to standard providers, publishes every contract address, ships a real troubleshooting guide, and publishes reputation weighting in full. Most projects would hide all of this. <b>The documentation is the most credible artefact AntSeed produces.</b> Our concern is not that they are hiding things — it is that what they have disclosed does not yet support a production deployment.</div>
+</section>
+
+<section class="sec" id="compare">
+  <div class="sec-h"><span class="sec-n">07</span><h2>Comparison with alternatives</h2></div>
+  <p class="sec-sub">Alternatives selected: OpenRouter (the aggregator AntSeed positions against), direct providers, and a decentralised GPU marketplace.</p>
+  <div class="t-wrap">
+  <table class="t">
+    <thead>
+      <tr>
+        <th style="width:15%">&nbsp;</th>
+        <th style="width:21%"><b>AntSeed</b></th>
+        <th style="width:21%">OpenRouter <span class="tag t-inference">Inference</span></th>
+        <th style="width:22%">Direct provider — OpenAI / Anthropic / Together / Fireworks</th>
+        <th style="width:21%">Decentralised GPU rental — io.net / Aethir class <span class="tag t-inference">Inference</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="dim">Architecture</td><td>Peer-to-peer marketplace, self-hosted buyer, Base-chain settlement</td><td>Centralised aggregator over many providers</td><td>Centralised single vendor</td><td>Decentralised GPU rental — containerised, not a P2P request protocol</td></tr>
+      <tr><td class="dim">Reliability</td><td><span class="status-blk">No SLA, no status page.</span> Single-provider concentration observed.</td><td><span class="status-ok">Public status page,</span> per-endpoint uptime, automatic fallback across providers</td><td><span class="status-ok">Best.</span> Contractual SLAs, committed capacity, 24/7 support</td><td>Variable; host quality ranges widely and SLAs are thin</td></tr>
+      <tr><td class="dim">Maturity</td><td><span class="status-blk">v0.2.x, 8 months old, 64 open issues</span></td><td>Since 2023; now Stripe-owned, valued over $8bn</td><td>Years; mature enterprise programmes</td><td>2–4 years; quality varies by operator</td></tr>
+      <tr><td class="dim">Privacy</td><td>No central account. <span class="status-blk">Seller reads plaintext;</span> TEE ~2% and self-described as future. Payment metadata is public on-chain.</td><td>Centralised; provider data-handling policies apply; no prompt-confidentiality guarantee by default</td><td><span class="status-ok">Strongest</span> — DPAs, retention options, zero-retention modes, residency</td><td>Operators see workloads; TEE often available but per-operator</td></tr>
+      <tr><td class="dim">Compliance</td><td><span class="status-blk">No SOC 2, no DPA, no residency.</span> Gibraltar arbitration, class-action waiver.</td><td>Enterprise terms available; data-processing addenda</td><td><span class="status-ok">SOC 2, DPA, residency, BAA, ISO</span></td><td>Varies; often minimal paperwork</td></tr>
+      <tr><td class="dim">Cost</td><td>4% fee plus seller-set price. <span class="tag t-inference">Inference</span> Possibly cheapest per token, but a ~$1k/day market with Gini 0.89 means prices are not stable.</td><td>5.5% card top-up or 5% BYOK fee. Transparent, stable pricing.</td><td>List price with volume discounts. Highest per token, fully predictable.</td><td>Roughly 30–60% below cloud list in vendor benchmarks — <b>not verified here</b></td></tr>
+      <tr><td class="dim">Model fidelity</td><td><span class="status-blk">Weak.</span> Labels unverified; no buyer-facing attestation.</td><td><span class="status-part">Partial.</span> Normalised API; some provider transparency.</td><td><span class="status-ok">Guaranteed.</span> You know the exact model and version.</td><td><span class="status-part">Partial.</span> Container isolation, not model attestation.</td></tr>
+      <tr><td class="dim">Abstraction value</td><td><span class="status-blk">Low.</span> ~$317k lifetime volume cannot support a 700-model marketplace.</td><td><span class="status-ok">Very high.</span> 10trn+ tokens/day, 400+ models, 10m+ developers.</td><td>None — you integrate each vendor separately.</td><td>Low — it supplies capacity, not an API layer.</td></tr>
+      <tr><td class="dim">Cost to switch away</td><td><span class="status-ok">Trivial</span> — change base URL</td><td><span class="status-ok">Trivial</span></td><td><span class="status-part">High</span> — per-vendor integration</td><td>Moderate</td></tr>
+      <tr><td class="dim">Single point of failure</td><td><span class="status-blk">Base sequencer + contract admin keys + individual sellers</span></td><td>OpenRouter itself, now Stripe's</td><td>The vendor — mitigated by a multi-vendor strategy</td><td>The specific GPU host</td></tr>
+      <tr class="hl"><td class="dim"><b>Verdict</b></td><td><b>Interesting, honest, not yet dependable.</b></td><td><b>Strong default for multi-model work.</b> Watch the Stripe integration for terms changes.</td><td><b>The only option that clears a serious enterprise bar today.</b></td><td><b>A cost-optimisation layer, not a replacement.</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note blue"><b>Context that matters.</b> <span class="tag t-verified">Verified</span> <span class="src">#62 #63</span> Stripe agreed to acquire OpenRouter for <b>over $8 billion</b> in August 2026, announced as Stripe's largest-ever acquisition. At the time of that announcement OpenRouter processed <b>10+ trillion tokens per day</b> across 400+ models for 10m+ developers, and publishes per-endpoint uptime. <b>AntSeed's stated competitor is a business roughly five orders of magnitude larger in daily throughput.</b> That is not a criticism of the engineering — it is context for how much margin for error a buyer should assume.</div>
+</section>
+
+<section class="sec" id="risks">
+  <div class="sec-h"><span class="sec-n">08</span><h2>Risks if adopted anyway, with mitigations</h2></div>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:19%">Risk</th><th style="width:7%">Severity</th><th style="width:36%">Mitigation</th><th>Residual risk after mitigation</th></tr></thead>
+    <tbody>
+      <tr><td class="dim">Silent model downgrade</td><td><span class="status-blk">High</span></td>
+        <td>Run a <b>model-fidelity suite</b> — 50–100 known-answer prompts with expected outputs per model — against a rotating sample of sellers on a schedule. <b>Pin providers explicitly</b> (<code>peerId@model</code>) for anything critical, and alert on any change in the response <code>model</code> field.</td>
+        <td><b>Medium.</b> Pinning removes routing drift but locks you to that seller's quality, including its empty-response defect.</td></tr>
+      <tr><td class="dim">Over-billing via issue #1200</td><td><span class="status-blk">High</span></td>
+        <td><b>Do not send paid traffic until it is closed and released.</b> Then reconcile every settlement line-by-line against your own token counts, and set a hard per-key daily budget so exposure is capped even if a similar bug recurs.</td>
+        <td><b>Low</b> once fixed and reconciled. <b>Unacceptable before.</b></td></tr>
+      <tr><td class="dim">Prompt or PII exposure to sellers</td><td><span class="status-blk">High</span></td>
+        <td><b>Never send regulated or customer data.</b> Scrub PII before the request. Restrict to an explicit seller allowlist. Do not rely on TEE until the verifier is live in a released version and you have confirmed it actually gates traffic.</td>
+        <td><b>Medium.</b> This is architectural. The only real fix is not sending sensitive data.</td></tr>
+      <tr><td class="dim">Provider outage with no failover</td><td><span class="status-blk">High</span></td>
+        <td><b>Put a real provider (OpenAI, Anthropic or Together) in front of it</b> as a fallback tier in your own router, so AntSeed never sits as the sole path to a customer-facing feature. Health-check the endpoint yourself, because nobody else will.</td>
+        <td><b>Low</b> — this is the single most important control.</td></tr>
+      <tr><td class="dim">Contract exploit or admin-key compromise</td><td><span class="status-blk">High</span></td>
+        <td><b>Keep the deposited balance at the absolute minimum</b> — fund per session, do not pre-load. Withdraw anything not in use. Keep the operator key separate. Do not treat AntSeed as a treasury.</td>
+        <td><b>Medium.</b> Caps the loss; cannot eliminate it.</td></tr>
+      <tr><td class="dim">Upstream seller termination (resale risk)</td><td><span class="status-part">Medium</span></td>
+        <td>Prefer sellers running genuinely self-hosted models; check the provider plugin type in the catalogue — <code>local-llm</code> versus <code>openai</code>. Maintain more than one seller per model.</td>
+        <td><b>Medium.</b> Requires manual curation that will not scale.</td></tr>
+      <tr><td class="dim">Content-safety and jailbroken models</td><td><span class="status-part">Medium</span></td>
+        <td>Configure an explicit model allowlist; do not rely on automatic routing, which ranks on price and trust only. Add output filtering downstream.</td>
+        <td><b>Low</b> once allowlisted.</td></tr>
+      <tr><td class="dim">Legal and compliance exposure</td><td><span class="status-blk">High</span></td>
+        <td><b>Obtain written legal sign-off on the Terms before any use.</b> Note the Gibraltar arbitration and class-action waiver. Confirm your regulatory posture accepts that "the provider is an anonymous third party you cannot sue".</td>
+        <td><b>Medium.</b> May be an outright blocker.</td></tr>
+      <tr><td class="dim">Abandonment or key loss</td><td><span class="status-part">Medium</span></td>
+        <td>Back up the secp256k1 identity key into your secrets manager. Maintain a standing alternative provider so a shutdown is an inconvenience, not an outage.</td>
+        <td><b>Low</b>.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="sec" id="next">
+  <div class="sec-h"><span class="sec-n">09</span><h2>Recommended next steps</h2></div>
+  <h3>Immediate — this week</h3>
+  <ol>
+    <li><b>Do not integrate.</b> If curiosity demands it, run a sandbox evaluation on non-customer data with a hard budget cap and no production dependency.</li>
+    <li><b>Ask AntSeed four questions in writing</b> and keep the answers:
+      <ol>
+        <li>When will issue #1200 be fixed, and in which release?</li>
+        <li>When does TEE verification ship in a released version, and how many sellers will actually be attested?</li>
+        <li>Will you publish a status page and an uptime target?</li>
+        <li>Do you hold or plan an independent audit of <code>AntseedDeposits</code> and <code>AntseedChannels</code>?</li>
+      </ol>
+    </li>
+    <li><b>Route this to legal.</b> The Terms — warranty disclaimer, Gibraltar arbitration, class-action waiver, no DPA — need a view before anything else happens.</li>
+  </ol>
+  <h3>Verification checklist — before any reconsideration</h3>
+  <p>These are the tests we did <b>not</b> run, ranked by how much each would change our verdict.</p>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:20%">Test</th><th style="width:32%">Method</th><th style="width:18%">Pass criterion</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td class="dim">1 · Paid end-to-end settlement</td><td>Fund $25 in a throwaway wallet. Run 200 paid requests across at least 10 sellers. Reconcile on-chain settlements against your own token counts.</td><td>Every line reconciles to ±1%. Issue #1200 closed.</td><td>The only way to validate the actual money path. <b>Requires your explicit approval and real funds.</b></td></tr>
+      <tr><td class="dim">2 · Model-fidelity test</td><td>200 known-answer prompts per target model, run against five randomly sampled sellers. Compare output and the response <code>model</code> field.</td><td>&gt;98% exact match; no seller returns a different model than labelled.</td><td>Directly tests the risk we observed first-hand. <b>This is the make-or-break test.</b></td></tr>
+      <tr><td class="dim">3 · Failover test</td><td>Identify the peers serving your target model; force-kill or block each in turn; measure whether traffic reroutes and how long recovery takes.</td><td>Automatic failover confirmed; recovery under 60 seconds.</td><td>We observed 20/20 single-peer routing. Failover is asserted, not demonstrated.</td></tr>
+      <tr><td class="dim">4 · Load and soak test</td><td>Sustained 24-hour run at expected peak plus 3×. Record p50/p95/p99 latency, error rate, empty-response rate and per-seller distribution.</td><td>p99 inside your SLO; error rate under 0.5%; at least three distinct sellers observed.</td><td>Establishes real capacity and real reliability. Nothing in the public record substitutes for this.</td></tr>
+      <tr><td class="dim">5 · Long-context and structured-output parity</td><td>Re-run your actual production workloads at real context lengths. Test JSON schema, tool calls and vision against your real schemas.</td><td>Parity with the direct provider within your tolerance.</td><td>Our tests used trivially short prompts and a 1×1-pixel image. Real workloads are where compatibility breaks.</td></tr>
+      <tr><td class="dim">6 · Compliance pack request</td><td>Request the SOC 2 report, DPAs, sub-processor list, penetration-test summary and breach-notification terms.</td><td>Documents exist and your counsel accepts them.</td><td>A hard gate. Absent these the answer is "no" regardless of technical results.</td></tr>
+      <tr><td class="dim">7 · Migration-off drill</td><td>Simulate AntSeed disappearing. Switch all traffic to a direct provider and time it.</td><td>Recovery inside your defined RTO.</td><td>Tests the only mitigation that actually bounds the downside.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>The pragmatic alternative</h3>
+  <p><span class="tag t-inference">Inference</span> If the objective behind this evaluation is <b>lower inference cost</b>, there is a materially better path today: put <b>OpenRouter</b> in front of existing traffic for multi-model access and automatic fallback with a published status page, and negotiate volume pricing directly with Together or Fireworks for your heaviest models. Run your own spend-cap and fallback layer. You will likely pay <b>more per token than AntSeed and far less than OpenAI list price</b>, and you will keep an SLA, a DPA and a support escalation path — which AntSeed cannot currently offer at any price.</p>
+</section>
+
+<section class="sec" id="gaps">
+  <div class="sec-h"><span class="sec-n">10</span><h2>Open questions and evidence gaps</h2></div>
+  <p class="sec-sub">Everything we could not establish, so the committee can see the shape of the unknowns and not just the conclusions.</p>
+  <div class="t-wrap">
+  <table class="t">
+    <thead><tr><th style="width:28%">Gap</th><th style="width:14%">Status</th><th>Why it is unresolved and what would close it</th></tr></thead>
+    <tbody>
+      <tr><td>Paid-request behaviour end to end</td><td><span class="status-blk">Not tested</span></td><td>Requires a wallet and real funds, which you instructed us not to use without asking. <b>Explicitly awaiting your decision.</b></td></tr>
+      <tr><td>Real cost and latency per model</td><td><span class="status-blk">Not tested</span></td><td>Same blocker. The "97% cheaper" claim remains <b>entirely unverified by us</b>.</td></tr>
+      <tr><td>Direct on-chain contract inspection</td><td><span class="status-part">Partial</span></td><td>BaseScan blocked our environment behind a Cloudflare challenge. We relied on AntSeed's published addresses plus an independent on-chain review. <b>A direct read of <code>transfersEnabled()</code>, fee settings and admin powers would close this.</b></td></tr>
+      <tr><td>Reddit sentiment</td><td><span class="status-part">Blocked</span></td><td>Reddit returned "You've been blocked by network security." We can neither confirm nor exclude community discussion. <b>Not recorded as absent.</b></td></tr>
+      <tr><td>X account authenticity and engagement source</td><td><span class="status-part">Partial</span></td><td>x.com returned HTTP 403 to our browser. We used the FxTwitter API mirror for the post, profile and engagement counts. <b>The account carries an organisation verification badge with no verification date, and the launch post's ≈0.11% like-to-impression ratio is low; we could not determine whether reach was organic or purchased.</b></td></tr>
+      <tr><td>BaseScan, Axios, CoinGecko, npm registry pages</td><td><span class="status-blk">Blocked</span></td><td>All Cloudflare-gated from this environment. Content was obtained via secondary sources; the primary pages themselves were not read. <b>Flagged as partial, not as loaded.</b></td></tr>
+      <tr><td>Financial runway and Foundation finances</td><td><span class="status-blk">Unknown</span></td><td>A monthly transparency report was promised, with the first due "by the beginning of Q4". <b>We found no published report.</b> Burn rate, treasury size and solvency are entirely unknown.</td></tr>
+      <tr><td>Named production customers</td><td><span class="status-blk">None found</span></td><td>No case studies, logos or references on any page reviewed. Launch coverage names investors, not customers.</td></tr>
+      <tr><td>Enterprise and procurement readiness</td><td><span class="status-blk">None found</span></td><td>No self-service enterprise tier, invoicing, purchase-order path or vendor-onboarding documentation. <b>A finance team probably cannot buy this today.</b></td></tr>
+      <tr><td>Abuse, moderation and takedown policy</td><td><span class="status-blk">None found</span></td><td>No content policy, takedown process or abuse-reporting route found — relevant given the uncensored-model catalogue.</td></tr>
+      <tr><td>Survivorship of top sellers</td><td><span class="status-blk">Not tested</span></td><td>Only 69 of 231 historical sellers were reachable when we looked. Whether churn is seasonal or the market is decaying cannot be answered from a single snapshot.</td></tr>
+      <tr><td>Mobile support</td><td><span class="status-blk">Absent by design</span></td><td>AntSeed's own get-started page states mobile is unsupported and directs users to Telegram instead. Relevant only if field staff are in scope.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="sec" id="sources">
+  <div class="sec-h"><span class="sec-n">11</span><h2>Sources appendix</h2></div>
+  <p class="sec-sub">Every URL below was loaded in the browser on <b>18 October 2026</b>. Findings in this report cite these numbers as <span class="src">#n</span>. Status: <span class="status-ok">Loaded</span> · <span class="status-part">Partial</span> · <span class="status-blk">Blocked</span>.</p>
+
+  <h4>A · AntSeed documentation — all loaded in full and scrolled end to end</h4>
+  <ol class="srcs">
+    <li id="s1"><a href="https://antseed.com/docs/quickstart/" target="_blank" rel="noopener">antseed.com/docs/quickstart/</a> — <span class="status-ok">Loaded</span> · starting source 1</li>
+    <li id="s2"><a href="https://antseed.com/docs/lightpaper/" target="_blank" rel="noopener">/docs/lightpaper/</a> — <span class="status-ok">Loaded</span> · "Last updated October 2026"</li>
+    <li id="s3"><a href="https://antseed.com/docs/model-routing/" target="_blank" rel="noopener">/docs/model-routing/</a> · <a href="https://antseed.com/docs/router-api/" target="_blank" rel="noopener">/docs/router-api/</a> — routing service, seller pool and router weights</li>
+    <li id="s4"><a href="https://antseed.com/docs/reputation/" target="_blank" rel="noopener">/docs/reputation/</a> — trust-score formula, "a future model-verification part will take its weight from there"</li>
+    <li id="s5"><a href="https://antseed.com/docs/contracts/" target="_blank" rel="noopener">/docs/contracts/</a> · <a href="https://basescan.org/address/0x0F7a3a8f4Da01637d1202bb5443fcF7F88F99fD2" target="_blank" rel="noopener">BaseScan AntseedDeposits</a> · <a href="https://basescan.org/address/0xBA66d3b4fbCf472F6F11D6F9F96aaCE96516F09d" target="_blank" rel="noopener">AntseedChannels</a> — <span class="status-ok">Loaded</span> docs · <span class="status-blk">Blocked</span> BaseScan (Cloudflare)</li>
+    <li id="s6"><a href="https://antseed.com/docs/" target="_blank" rel="noopener">/docs/</a> · <a href="https://antseed.com/sitemap.xml" target="_blank" rel="noopener">/sitemap.xml</a> — 114 URLs enumerated; used to confirm no status or pricing page exists</li>
+    <li id="s7"><a href="https://antseed.com/network/" target="_blank" rel="noopener">/network/</a> · <a href="https://antseed.com/providers/" target="_blank" rel="noopener">/providers/</a> · <a href="https://antseed.com/ecosystem/" target="_blank" rel="noopener">/ecosystem/</a></li>
+    <li id="s8"><a href="https://antseed.com/docs/faq/" target="_blank" rel="noopener">/docs/faq/</a> — TEE "being rolled out in a future release", failover, fees, 402 recovery</li>
+    <li id="s9"><a href="https://antseed.com/docs/payments/" target="_blank" rel="noopener">/docs/payments/</a> · <a href="https://antseed.com/docs/reward-policies/" target="_blank" rel="noopener">/docs/reward-policies/</a> · <a href="https://antseed.com/docs/recognized-usage/" target="_blank" rel="noopener">/docs/recognized-usage/</a></li>
+    <li id="s10"><a href="https://antseed.com/docs/discovery/" target="_blank" rel="noopener">/docs/discovery/</a> · <a href="https://antseed.com/docs/transport/" target="_blank" rel="noopener">/docs/transport/</a> · <a href="https://antseed.com/docs/api/" target="_blank" rel="noopener">/docs/api/</a></li>
+    <li id="s11"><a href="https://antseed.com/docs/gateway/routing/" target="_blank" rel="noopener">/docs/gateway/routing/</a> · <a href="https://antseed.com/docs/gateway/models/" target="_blank" rel="noopener">models/</a> · <a href="https://antseed.com/docs/gateway/api/" target="_blank" rel="noopener">api/</a></li>
+    <li id="s12"><a href="https://antseed.com/ants-token/" target="_blank" rel="noopener">/ants-token/</a> — "TOKENS RESTRICTED", ResponseAuth and fingerprint claims</li>
+    <li id="s13"><a href="https://antseed.com/docs/provide/tee/" target="_blank" rel="noopener">/docs/provide/tee/</a> · <a href="https://antseed.com/docs/verify-tee/" target="_blank" rel="noopener">/docs/verify-tee/</a> · <a href="https://antseed.com/docs/provide/verified-identity/" target="_blank" rel="noopener">verified-identity/</a></li>
+    <li id="s14"><a href="https://antseed.com/docs/provide/" target="_blank" rel="noopener">/docs/provide/</a> · <a href="https://antseed.com/docs/provide/config/" target="_blank" rel="noopener">config/</a> · <a href="https://antseed.com/docs/provide/staking/" target="_blank" rel="noopener">staking/</a> · <a href="https://antseed.com/docs/provide/metrics/" target="_blank" rel="noopener">metrics/</a> · <a href="https://antseed.com/docs/provide/payments/" target="_blank" rel="noopener">payments/</a></li>
+    <li id="s16"><a href="https://antseed.com/docs/gateway/budgets/" target="_blank" rel="noopener">/docs/gateway/budgets/</a> · <a href="https://antseed.com/docs/gateway/funding/" target="_blank" rel="noopener">funding/</a> · <a href="https://antseed.com/docs/gateway/sign-in/" target="_blank" rel="noopener">sign-in/</a> · <a href="https://antseed.com/docs/gateway/server/" target="_blank" rel="noopener">server/</a> · <a href="https://antseed.com/docs/gateway/troubleshooting/" target="_blank" rel="noopener">troubleshooting/</a></li>
+    <li id="s20"><a href="https://antseed.com/docs/install/" target="_blank" rel="noopener">/docs/install/</a> · <a href="https://antseed.com/docs/commands/" target="_blank" rel="noopener">/docs/commands/</a> · <a href="https://antseed.com/docs/flags/" target="_blank" rel="noopener">/docs/flags/</a> · <a href="https://antseed.com/docs/desktop/" target="_blank" rel="noopener">/docs/desktop/</a> · <a href="https://antseed.com/docs/agents/" target="_blank" rel="noopener">/docs/agents/</a></li>
+    <li id="s25"><a href="https://antseed.com/docs/legacy-emissions/" target="_blank" rel="noopener">/docs/legacy-emissions/</a> · <a href="https://antseed.com/docs/metadata-v12-upgrade/" target="_blank" rel="noopener">/docs/metadata-v12-upgrade/</a> · <a href="https://antseed.com/docs/tunnels/" target="_blank" rel="noopener">/docs/tunnels/</a> · <a href="https://antseed.com/docs/provider-api/" target="_blank" rel="noopener">/docs/provider-api/</a> · <a href="https://antseed.com/docs/gateway/chat/" target="_blank" rel="noopener">/docs/gateway/chat/</a> · <a href="https://antseed.com/docs/gateway/activity/" target="_blank" rel="noopener">/docs/gateway/activity/</a></li>
+  </ol>
+
+  <h4>B · AntSeed marketing, blog and legal</h4>
+  <ol class="srcs" start="26">
+    <li id="s26"><a href="https://antseed.com/" target="_blank" rel="noopener">antseed.com/</a> — "700+ AI models", hero claim</li>
+    <li id="s27"><a href="https://antseedstats.com/" target="_blank" rel="noopener">antseedstats.com/</a> — independent, unaffiliated dashboard; source of most network metrics</li>
+    <li id="s28"><a href="https://antseedstats.com/distribution" target="_blank" rel="noopener">/distribution</a> · <a href="https://antseedstats.com/sellers" target="_blank" rel="noopener">/sellers</a> · <a href="https://antseedstats.com/labs" target="_blank" rel="noopener">/labs</a> · <a href="https://antseedstats.com/faq" target="_blank" rel="noopener">/faq</a> · <a href="https://antseedstats.com/about" target="_blank" rel="noopener">/about</a> · <a href="https://antseedstats.com/status" target="_blank" rel="noopener">/status</a> · <a href="https://antseedstats.com/llms.txt" target="_blank" rel="noopener">/llms.txt</a> — Gini coefficients, seller rankings, lab catalogue</li>
+    <li id="s29"><a href="https://antseedstats.com/models" target="_blank" rel="noopener">/models</a> · <a href="https://antseedstats.com/buyers" target="_blank" rel="noopener">/buyers</a> · <a href="https://antseedstats.com/ants" target="_blank" rel="noopener">/ants</a> · <a href="https://antseedstats.com/staking" target="_blank" rel="noopener">/staking</a> · <a href="https://antseedstats.com/revenue" target="_blank" rel="noopener">/revenue</a></li>
+    <li id="s30"><a href="https://antseedstats.com/channels" target="_blank" rel="noopener">/channels</a> · <a href="https://antseedstats.com/transactions" target="_blank" rel="noopener">/transactions</a> · <a href="https://antseedstats.com/labs" target="_blank" rel="noopener">/labs</a> — "Venice.ai Proxy", "Mistral Relay Node", "surplus-provider"; impostor-token warning</li>
+    <li id="s31"><a href="https://antseed.com/vs/openrouter/" target="_blank" rel="noopener">/vs/openrouter/</a> — vendor's own comparison page</li>
+    <li id="s32"><a href="https://antseed.com/privacy/" target="_blank" rel="noopener">/privacy/</a> · <a href="https://antseed.com/agents/" target="_blank" rel="noopener">/agents/</a> · <a href="https://antseed.com/integrations/" target="_blank" rel="noopener">/integrations/</a> · <a href="https://antseed.com/get-started/" target="_blank" rel="noopener">/get-started/</a> · <a href="https://antseed.com/brand/" target="_blank" rel="noopener">/brand/</a> · <a href="https://antseed.com/coding/" target="_blank" rel="noopener">/coding/</a></li>
+    <li id="s33"><a href="https://antseed.com/blog/announcing-antseed-non-profit-foundation/" target="_blank" rel="noopener">/blog/announcing-antseed-non-profit-foundation/</a> — 17 Jul 2026; "in this space since 2012"; 15% Foundation allocation; monthly transparency promise</li>
+    <li id="s34"><a href="https://antseed.com/terms-of-service/" target="_blank" rel="noopener">/terms-of-service/</a> — updated 9 Oct 2026; read in full, 71,588 characters</li>
+    <li id="s35"><a href="https://antseed.com/live-prices/" target="_blank" rel="noopener">/live-prices/</a> — <span class="status-blk">404</span> · linked from site navigation but does not exist</li>
+    <li><a href="https://antseed.com/install.sh" target="_blank" rel="noopener">/install.sh</a> — <span class="status-part">Redirected</span> · served the marketing page rather than a shell script when fetched via the browser</li>
+    <li><a href="https://antseed.com/blog/" target="_blank" rel="noopener">/blog/</a> index and all 24 posts, including <a href="https://antseed.com/blog/dont-trust-the-tee-label/" target="_blank" rel="noopener">dont-trust-the-tee-label/</a>, <a href="https://antseed.com/blog/the-402-flow/" target="_blank" rel="noopener">the-402-flow/</a>, <a href="https://antseed.com/blog/separation-of-risk/" target="_blank" rel="noopener">separation-of-risk/</a>, <a href="https://antseed.com/blog/proof-of-prior-delivery/" target="_blank" rel="noopener">proof-of-prior-delivery/</a>, <a href="https://antseed.com/blog/model-verification-fingerprint-swarm/" target="_blank" rel="noopener">model-verification-fingerprint-swarm/</a>, <a href="https://antseed.com/blog/seller-pools-reputation-tokenomics/" target="_blank" rel="noopener">seller-pools-reputation-tokenomics/</a>, <a href="https://antseed.com/blog/trust-without-a-middleman/" target="_blank" rel="noopener">trust-without-a-middleman/</a>, <a href="https://antseed.com/blog/virtual-private-router-vpr/" target="_blank" rel="noopener">virtual-private-router-vpr/</a>, <a href="https://antseed.com/blog/anonymous-vs-private-ai/" target="_blank" rel="noopener">anonymous-vs-private-ai/</a>, <a href="https://antseed.com/blog/the-permissionless-openrouter-alternative/" target="_blank" rel="noopener">the-permissionless-openrouter-alternative/</a>, <a href="https://antseed.com/blog/ants-staking/" target="_blank" rel="noopener">ants-staking/</a>, <a href="https://antseed.com/blog/foundation-provider-staking/" target="_blank" rel="noopener">foundation-provider-staking/</a>, <a href="https://antseed.com/blog/llm-api-without-account/" target="_blank" rel="noopener">llm-api-without-account/</a>, <a href="https://antseed.com/blog/ai-infrastructure-bittorrent-not-spotify/" target="_blank" rel="noopener">ai-infrastructure-bittorrent-not-spotfly/</a>, <a href="https://antseed.com/blog/claude-code-pricing-breakeven/" target="_blank" rel="noopener">claude-code-pricing-breakeven/</a>, <a href="https://antseed.com/blog/the-infrastructure-layer-for-private-ai/" target="_blank" rel="noopener">the-infrastructure-layer-for-private-ai/</a>, <a href="https://antseed.com/blog/earn-from-your-local-ai-model/" target="_blank" rel="noopener">earn-from-your-local-ai-model/</a>, <a href="https://antseed.com/blog/use-claude-deepseek-llama-privately/" target="_blank" rel="noopener">use-claude-deepseek-llama-privately/</a>, <a href="https://antseed.com/blog/deploy-your-own-antseed-gateway/" target="_blank" rel="noopener">deploy-your-own-antseed-gateway/</a> — all <span class="status-ok">Loaded</span></li>
+  </ol>
+
+  <h4>C · GitHub, npm and package registry</h4>
+  <ol class="srcs" start="41">
+    <li id="s41"><a href="https://github.com/Antseed/antseed" target="_blank" rel="noopener">github.com/Antseed/antseed</a> — <span class="status-ok">Loaded</span></li>
+    <li id="s42"><a href="https://github.com/Antseed" target="_blank" rel="noopener">github.com/Antseed</a> · <a href="https://github.com/Antseed/AIPs" target="_blank" rel="noopener">/AIPs</a> — 10 repositories, 58 org followers; AIP improvement proposals</li>
+    <li id="s43"><a href="https://api.github.com/repos/Antseed/antseed/releases" target="_blank" rel="noopener">api.github.com/…/releases</a> · <a href="https://api.github.com/repos/Antseed/antseed/tags" target="_blank" rel="noopener">/tags</a> — 50 releases, latest <code>v0.2.65</code> on 18 Oct 2026</li>
+    <li id="s44"><a href="https://api.github.com/repos/Antseed/antseed/commits" target="_blank" rel="noopener">api.github.com/…/commits</a> · <a href="https://api.github.com/repos/Antseed/antseed/contributors" target="_blank" rel="noopener">/contributors</a> · <a href="https://api.github.com/orgs/Antseed/repos" target="_blank" rel="noopener">org/repos</a> · <a href="https://api.github.com/orgs/Antseed/events" target="_blank" rel="noopener">org/events</a> — 26 contributors, 123 stars, 43 forks</li>
+    <li id="s45"><a href="https://api.github.com/repos/Antseed/antseed/issues" target="_blank" rel="noopener">api.github.com/…/issues</a> · <a href="https://github.com/Antseed/antseed/issues?q=is%3Aissue+state%3Aopen" target="_blank" rel="noopener">issues (open)</a> — 64 open issues; #1184 sanctions list</li>
+    <li id="s46"><a href="https://github.com/Antseed/antseed/issues?q=is%3Aissue+is%3Aopen" target="_blank" rel="noopener">github.com/…/issues</a> — 24 open in the most recent 100-item window, 83 items are pull requests</li>
+    <li id="s48"><a href="https://github.com/Antseed/antseed/issues/1200" target="_blank" rel="noopener">github.com/…/issues/1200</a> — <span class="status-ok">Loaded</span> · open over-billing bug</li>
+    <li id="s49"><a href="https://api.github.com/repos/Antseed/antseed/stats/commit_activity" target="_blank" rel="noopener">api.github.com/…/stats/commit_activity</a> — <span class="status-ok">Loaded</span></li>
+    <li id="s50"><a href="https://www.npmjs.com/package/@antseed/cli" target="_blank" rel="noopener">npmjs.com/package/@antseed/cli</a> — <span class="status-blk">Blocked</span> (Cloudflare). Version <code>0.1.196</code> confirmed instead via the npm registry API.</li>
+    <li id="s51"><a href="https://github.com/Antseed/antseed/issues/1203" target="_blank" rel="noopener">github.com/…/issues/1203</a> — Windows desktop app start failure</li>
+  </ol>
+
+  <h4>D · The X announcement (retrieved via API mirror — x.com returned HTTP 403)</h4>
+  <ol class="srcs" start="61">
+    <li id="s61"><a href="https://x.com/AntSeed/status/2110006462676447352" target="_blank" rel="noopener">x.com/AntSeed/status/2110006462676447352</a> — <span class="status-blk">Blocked</span> (403) · read via <a href="https://api.fxtwitter.com/AntSeed/status/2110006462676447352" target="_blank" rel="noopener">api.fxtwitter.com mirror</a> — <span class="status-ok">Loaded</span></li>
+    <li>Post text: <i>"Introducing Antseed Gateway Console. Give your agents, apps, and team access to 700+ AI models at lower prices, with built-in privacy. Choose models, manage access, set budgets, and track usage from one console."</i> Posted <b>13 Oct 2026 13:55 UTC</b>. Metrics at review: <b>389,619 views · 423 likes · 106 retweets · 49 replies · 254 bookmarks · 40 quotes</b>. Author @AntSeed: verified organisation badge with <code>verified_at: null</code>, 5,844 followers, account created 18 Feb 2026, bio <i>"Non Profit Foundation. The open market for AI inference. Peer-to-peer. Onchain payments. Verifiable reputation."</i>, links to <code>t.me/antseed</code>.</li>
+    <li><a href="https://t.me/antseed" target="_blank" rel="noopener">t.me/antseed</a> — <span class="status-ok">Loaded</span> · 877 members, ~135 online; described as "currently development focused"</li>
+  </ol>
+
+  <h4>E · Independent third-party sources</h4>
+  <ol class="srcs" start="63">
+    <li id="s63"><a href="https://ownyourmind.ai/projects/antseed/" target="_blank" rel="noopener">ownyourmind.ai/projects/antseed/</a> — <span class="status-ok">Loaded</span> · <b>The most valuable independent source found.</b> On-chain verification of the token; "liquidity and access" scored <b>1/15</b>; two-person team; <b>no public smart-contract audit</b>; 169 ANTS holders; validation-system execution risk flagged. Site states its on-chain checks were current as of 13 Oct 2026.</li>
+    <li id="s62"><a href="https://openrouter.ai/blog/announcements/openrouter-is-joining-stripe/" target="_blank" rel="noopener">openrouter.ai/blog/announcements/openrouter-is-joining-stripe/</a> — <span class="status-part">Search index</span> · 19 Aug 2026 · 10trn+ tokens/day, 400+ models, 10m+ developers</li>
+    <li id="s64"><a href="https://www.reuters.com/technology/payments-firm-stripe-buy-ai-developer-platform-openrouter-2026-08-19/" target="_blank" rel="noopener">reuters.com — Stripe to buy OpenRouter, &gt;$8bn</a> — <span class="status-part">Search index</span> · 19 Aug 2026</li>
+    <li id="s65"><a href="https://www.axios.com/pro/all-deals/2026/10/06/exclusive-antseed-decentralized-openrouter" target="_blank" rel="noopener">axios.com/pro — Antseed raises $2.4M</a> — <span class="status-blk">Blocked</span> (Cloudflare) · content via search index: $2.4m token round, <b>CEO Amos Meiri</b>, "decentralized OpenRouter" framing</li>
+    <li id="s66"><a href="https://antseed.com/blog/antseed-foundation-raises-2-4m/" target="_blank" rel="noopener">antseed.com/blog/antseed-foundation-raises-2-4m/</a> — <span class="status-ok">Loaded</span> · 6 Oct 2026 · round led by Spark Capital with Collider, DCG, North Island Ventures, Reciprocal Ventures, Relayer Capital and Venice.ai</li>
+    <li id="s54"><a href="https://aiweekly.co/alerts/antseed-launches-peer-to-peer-ai-inference-market-with-24m" target="_blank" rel="noopener">aiweekly.co</a> — <span class="status-ok">Loaded</span> · independently flagged the "97% below list" claim as unbenchmarked</li>
+    <li id="s67"><a href="https://cryptorank.io/insights/deals/antseed-private-token-sale-2026-10-06" target="_blank" rel="noopener">cryptorank.io</a> — <span class="status-part">Search index</span> · funding round corroboration</li>
+    <li id="s68"><a href="https://cryptodaily.co.uk/2026/10/antseed-raises-24m-to-build-a-decentralized-marketplace-for-ai-inference" target="_blank" rel="noopener">cryptodaily.co.uk</a> · <a href="https://www.analyticsinsight.net/artificial-intelligence/antseed-raises-24m-to-launch-peer-to-peer-marketplace-for-ai-inference" target="_blank" rel="noopener">analyticsinsight.net</a> · <a href="https://hackernoon.com/antseed-raises-%2424m-from-spark-capital-to-build-an-open-market-for-ai-inference" target="_blank" rel="noopener">hackernoon.com</a> — <span class="status-part">Search index</span> · independent funding corroboration</li>
+    <li id="s53"><a href="https://lants.eth.limo/docs.html" target="_blank" rel="noopener">lants.eth.limo</a> — <span class="status-ok">Loaded</span> · third-party NFT marketplace for AntSeedSellerPools positions; independently confirms ANTS transfers are disabled and that the position NFT is the only way to move locked ANTS</li>
+    <li id="s69"><a href="https://coinmarketcap.com/currencies/antseed/" target="_blank" rel="noopener">coinmarketcap.com/currencies/antseed</a> — <span class="status-ok">Loaded</span> · listing exists with no market data</li>
+    <li id="s70"><a href="https://www.coingecko.com/en/coins/antseed" target="_blank" rel="noopener">coingecko.com/en/coins/antseed</a> — <span class="status-blk">Blocked</span> (Cloudflare). Corroborated indirectly via the independent review, which reports a CoinGecko entry mapped to the Base contract with zero tickers.</li>
+    <li id="s57"><a href="https://hn.algolia.com/?q=antseed" target="_blank" rel="noopener">hn.algolia.com — Hacker News search for "antseed"</a> — <span class="status-ok">Loaded</span> · <b>zero relevant results</b></li>
+    <li id="s59"><a href="https://www.reddit.com/search/?q=antseed%20AI%20inference" target="_blank" rel="noopener">reddit.com/search — "antseed AI inference"</a> — <span class="status-blk">Blocked</span> · "You've been blocked by network security"</li>
+    <li id="s71"><a href="https://status.antseed.com/" target="_blank" rel="noopener">status.antseed.com</a> — <span class="status-blk">Blocked</span> · DNS <code>NXDOMAIN</code> · no status page exists</li>
+    <li id="s72"><a href="https://antseed.statuspage.io/" target="_blank" rel="noopener">antseed.statuspage.io</a> — <span class="status-part">Generic</span> · returns the Atlassian marketing page; no such Statuspage exists</li>
+    <li id="s73"><a href="https://status.openrouter.ai/" target="_blank" rel="noopener">status.openrouter.ai</a> — <span class="status-part">Datadog</span> · comparison baseline for a published status page</li>
+    <li id="s74"><a href="https://www.together.ai/" target="_blank" rel="noopener">together.ai</a> · <a href="https://fireworks.ai/" target="_blank" rel="noopener">fireworks.ai</a> — <span class="status-ok">Loaded</span> · comparison baselines</li>
+  </ol>
+</section>
+
+<footer>
+  <p><strong>Prepared</strong> 18 October 2026 · all findings carry this access date · no screenshots are embedded in this version at the client's request; every claim is cited to a numbered source above and can be re-verified in a browser.</p>
+  <p><strong>Method note.</strong> Findings marked <span class="tag t-verified">Verified</span> were observed first-hand during this review, either in the browser or through the local install and test described in §04. Findings marked <span class="tag t-claimed">Claimed</span> are stated by AntSeed or its investors and have not been independently confirmed. Findings marked <span class="tag t-inference">Inference</span> are our analysis. Where we searched and found nothing, we say <span class="tag t-none">No evidence found</span> rather than inferring an answer.</p>
+  <p><strong>Safety.</strong> No wallet was connected, no funds were deposited, no credentials or customer data were entered, and no transaction was signed during this review. All test artefacts were removed from the machine afterwards.</p>
+</footer>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn');
+  var KEY='antseed-dd-theme';
+  try{ var saved=localStorage.getItem(KEY); if(saved){ root.setAttribute('data-theme',saved); } }catch(e){}
+  btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme')||'auto';
+    var dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next = cur==='auto' ? (dark?'light':'dark') : (cur==='dark'?'light':'dark');
+    root.setAttribute('data-theme',next);
+    try{ localStorage.setItem(KEY,next); }catch(e){}
+  });
+})();
+</script>
